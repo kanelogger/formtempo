@@ -1,0 +1,11 @@
+.scroll-model { margin: 0; }
+.scroll-model__canvas { position: relative; display: grid; place-items: center; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 12px; background: #e8f3fa; perspective: 750px; container-type: inline-size; }
+.scroll-model__object { --size: min(20cqw, 150px); --depth: calc(var(--size) * (.5 + .48 * var(--model-progress, .5))); position: relative; width: var(--size); height: var(--size); transform-style: preserve-3d; transform: rotateX(calc(-18deg - 25deg * var(--model-progress, .5))) rotateY(calc(-25deg + 95deg * var(--model-progress, .5))); }
+.scroll-model__face { position: absolute; inset: 0; display: grid; place-items: center; border: 1px solid #275d7f; background: #82abc1; color: #173e56; font: 600 clamp(.8rem, 2vw, 1.1rem)/1 system-ui, sans-serif; backface-visibility: visible; }
+.scroll-model__face--front { transform: translateZ(var(--depth)); background: #ef9d77; }
+.scroll-model__face--back { transform: rotateY(180deg) translateZ(var(--depth)); background: #f3c293; }
+.scroll-model__face--right { transform: rotateY(90deg) translateZ(var(--depth)); background: #6291ad; }
+.scroll-model__face--left { transform: rotateY(-90deg) translateZ(var(--depth)); background: #9cc7d5; }
+.scroll-model__face--top { transform: rotateX(90deg) translateZ(var(--depth)); background: #f7d7a4; }
+.scroll-model__face--bottom { transform: rotateX(-90deg) translateZ(var(--depth)); background: #52809d; }
+.scroll-model figcaption { margin-block-start: .65rem; color: var(--text-2); font-size: .875rem; line-height: 1.55; }

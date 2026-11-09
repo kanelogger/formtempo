@@ -1,0 +1,384 @@
+---
+import Site from "../layouts/Site.astro";
+import Arrow from "../components/Arrow.astro";
+import ClipComparison from "../components/ClipComparison.astro";
+import EverydayScenarios from "../components/EverydayScenarios.astro";
+import HeroClip from "../components/HeroClip.astro";
+import MaskComparison from "../components/MaskComparison.astro";
+import Notation from "../components/Notation.astro";
+import Driven from "../demos/Driven.astro";
+import VerificationRail from "../components/VerificationRail.astro";
+import "../styles/home.css";
+import { effects, groups, routes, total, withBase } from "../effects";
+import { drivenExamples } from "../demos/driven-examples";
+
+const repository = "https://github.com/kanelogger/formtempo";
+const catalog = withBase(routes.index);
+const demos = ["clip-reveal", "layered-parallax", "horizontal-gallery"]
+  .map((slug) => effects.find((effect) => effect.slug === slug)!);
+const featured = groups.map(({ id }) => effects.find(({ group }) => group === id)!);
+const firstEffect = effects[0];
+const clip = demos[0];
+const exampleHref = (implementation: string) => withBase(routes.example(clip.slug, implementation));
+const detailHref = (slug: string) => withBase(routes.effect(slug));
+const categoryOf = (id: string) => groups.find((group) => group.id === id)!;
+
+const demoBeats = [
+  { label: "起点", title: "从起始画面看起。", body: "往下滚动，或拖动演示进度，比较同一个画面的前后状态。" },
+  { label: "变化", title: "进度开始推动画面。", body: "每一段滚动距离都对应一段画面变化。停下来，变化也随之停下。" },
+  { label: "中段", title: "观察中间那一帧。", body: "通过上方标签切换案例，比较裁剪、视差和横向位移在同一进度下的表现。" },
+  { label: "终点", title: "向上滚动，沿原路返回。", body: "进度从 100% 回到 0%，画面反向经过相同的中间状态。" },
+];
+const codeBeats = [
+  { label: "画面", title: "固定图像的位置。", body: "先定义容器和图像，裁剪过程中图像的尺寸与位置保持不变。" },
+  { label: "边界", title: "只修改可见范围。", body: "用 clip-path 的 inset() 裁出区域。四侧边距从 50% 到 0%。" },
+  { label: "进度", title: "把滚动换算成进度。", body: "在固定区间内得到 0 到 1 的值，再映射到裁剪边距。" },
+  { label: "同步", title: "让滚动和画面同步。", body: "原生在动画帧更新进度，GSAP 用 ScrollTrigger 的 scrub 绑定时间轴。" },
+  { label: "试用", title: "两种实现，同一种效果。", body: "打开完整示例，切换到滚动模式，也可以用进度条验证任意一帧。" },
+];
+const implementations = [
+  {
+    id: "native", title: "原生",
+    lines: [
+      [".stage { position: relative; overflow: hidden; }", ".art { display: block; width: 100%; height: 100%; }"],
+      [".art { clip-path: inset(calc((1 - var(--p)) * 50%)); }"],
+      ["function render(p) {", "  track.style.setProperty('--p', p);", "  showProgress(p);", "}"],
+      ["frame = requestAnimationFrame(() => {", "  frame = 0;", "  if (track.classList.contains('scroll-mode')) {", "    render(Math.max(0, Math.min(1, (scrollY - start) / distance)));", "  }", "});"],
+      ["range.addEventListener('input', () => {", "  manual = Number(range.value) / 100;", "  render(manual);", "});"],
+    ],
+  },
+  {
+    id: "gsap", title: "GSAP",
+    lines: [
+      ["gsap.registerPlugin(ScrollTrigger);", "const tween = gsap.timeline({ paused: true });"],
+      ["tween.fromTo('.art', { clipPath: 'inset(50%)' },", "  { clipPath: 'inset(0%)', ease: 'none' });"],
+      ["function render(p) {", "  tween.progress(p);", "  showProgress(p);", "}"],
+      ["trigger = ScrollTrigger.create({", "  trigger: track,", "  start: 'top top',", "  end: () => '+=' + (track.offsetHeight - sticky.offsetHeight),", "  animation: tween,", "  scrub: true,", "});"],
+      ["range.addEventListener('input', () => {", "  manual = Number(range.value) / 100;", "  render(manual);", "});"],
+    ],
+  },
+];
+const stats = [
+  { value: effects.length, label: "可操作的案例" },
+  { value: groups.length, label: "动效类别" },
+  { value: implementations.length, label: "实现写法" },
+  { value: effects.length * implementations.length, label: "独立 HTML 示例" },
+  { value: 0, label: "原生示例运行时依赖" },
+];
+const steps = [
+  { title: "挑选一个案例", body: "按输入方式找动作。链接反馈属于指针交互，阅读过程中随进度改变的画面属于滚动驱动。" },
+  { title: "操作并比较", body: "先试玩演示，再看场景与行为定义。留意什么时候触发，反向操作时又会发生什么。" },
+  { title: "把示例带走", body: "打开原生或 GSAP 示例，复制完整 HTML，保存成文件后直接用浏览器打开。" },
+];
+---
+
+<Site title="FormTempo · 网页动效图鉴" description="一册可以亲手操作的网页动效图鉴。按触发方式寻找案例，了解效果、使用场景和实现方法。" section="home">
+  <div class="home">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-layout">
+        <div class="hero-copy">
+          <h1 id="hero-title"><span>网页动效怎么做？</span><span>先来<em>亲手试一次吧。</em></span></h1>
+          <p class="hero-sub">FormTempo 收录了 {effects.length} 个可以亲手操作的网页动效，从悬停反馈到滚动揭示和页面转场。每个案例都拆解行为和使用场景，并提供原生与 GSAP 两份可独立运行的 HTML。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href={catalog}>浏览图鉴 <Arrow /></a>
+            <a class="btn btn-ghost" href={exampleHref("native")} id="demo-open" aria-haspopup="dialog">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5.25 3.5 7 4.5-7 4.5v-9Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+              现场演示
+            </a>
+          </div>
+          <a class="hero-repository" href={repository} target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.26-4.55-1.11-4.55-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.33 4.69-4.57 4.94.36.31.68.92.68 1.86v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" /></svg>
+            在 GitHub 查看项目
+          </a>
+        </div>
+        <HeroClip title={clip.title} exampleUrl={exampleHref("native")} />
+      </div>
+    </section>
+
+    <section class="stage" id="preview" aria-labelledby="preview-title">
+      <div class="stage-pin">
+        <div class="stage-window" data-mode="demo">
+          <div class="window-bar">
+            <h2 class="stage-title" id="preview-title">现场演示</h2>
+            <div class="mode-switch" role="group" aria-label="工作台模式">
+              <span class="mode-thumb" aria-hidden="true"></span>
+              <button type="button" data-mode="demo" aria-pressed="true">演示</button>
+              <button type="button" data-mode="code" aria-pressed="false">实现</button>
+            </div>
+            <a class="proof-open" id="proof-open" href={detailHref(clip.slug)} target="_blank" rel="noopener" aria-label="在新标签页打开案例">
+              <span>打开案例</span><Arrow diagonal />
+            </a>
+          </div>
+          <div class="stage-tabs">
+            <div class="proof-rail" data-mode="demo" role="tablist" aria-label="滚动驱动案例">
+              {demos.map((effect, index) => (
+                <button class="spec-card" id={`demo-tab-${effect.slug}`} type="button" role="tab"
+                  aria-controls={`demo-panel-${effect.slug}`} aria-selected={index === 0} tabindex={index === 0 ? 0 : -1}
+                  data-href={detailHref(effect.slug)}>
+                  <span class="spec-idx">{effect.number}</span><span>{effect.title}</span>
+                </button>
+              ))}
+            </div>
+            <div class="proof-rail" data-mode="code" role="tablist" aria-label="实现方式" hidden>
+              {implementations.map(({ id, title }, index) => (
+                <button class="spec-card" id={`code-tab-${id}`} type="button" role="tab"
+                  aria-controls={`code-panel-${id}`} aria-selected={index === 0} tabindex={index === 0 ? 0 : -1}
+                  data-href={exampleHref(id)}>
+                  <span class="spec-idx">0{index + 1}</span><span>{title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div class="stage-workspace">
+            <div class="hero-frame">
+              {demos.map((effect, index) => (
+                <div class="stage-panel demo-panel" id={`demo-panel-${effect.slug}`} role="tabpanel"
+                  aria-labelledby={`demo-tab-${effect.slug}`} hidden={index !== 0} data-mode="demo">
+                  <Driven variant={effect.slug} home />
+                </div>
+              ))}
+              {implementations.map(({ id, title, lines }) => (
+                <div class="stage-panel code-panel" id={`code-panel-${id}`} role="tabpanel"
+                  aria-labelledby={`code-tab-${id}`} data-mode="code" tabindex="0" hidden>
+                  <div class="code-heading"><span>{clip.title}</span><span>{title} · HTML</span></div>
+                  <pre><code>{lines.map((block, index) => (
+                    <span class="code-block" data-code-beat={index}>
+                      {block.map((line) => <span class="code-line">{line}</span>)}
+                    </span>
+                  ))}</code></pre>
+                </div>
+              ))}
+            </div>
+
+            <div class="beat-card">
+              {[{ mode: "demo", beats: demoBeats }, { mode: "code", beats: codeBeats }].map(({ mode, beats }) => (
+                <div class="beat-rail" role="group" aria-label={mode === "demo" ? "演示进度章节" : "实现章节"} data-mode={mode} hidden={mode === "code"}>
+                  {beats.map(({ label, title, body }, index) => (
+                    <button class="beat-tick" type="button" aria-pressed={mode === "demo" && index === 0} data-title={title} data-body={body}>{label}</button>
+                  ))}
+                </div>
+              ))}
+              <p class="beat-meta"><span class="proof-live" id="proof-live">现场演示</span><span id="proof-meta">{clip.title} · 滚动驱动</span></p>
+              <h3 class="beat-title" id="beat-title">{demoBeats[0].title}</h3>
+              <p class="beat-body" id="beat-body">{demoBeats[0].body}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="receipts" aria-label="图鉴概况">
+      <div class="wrap receipts-row">
+        {stats.map(({ value, label }) => <div class="receipt"><b>{value}</b><span>{label}</span></div>)}
+      </div>
+    </section>
+
+    <section id="examples" aria-labelledby="examples-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="section-label"><span>01</span><span>精选案例</span></p>
+          <h2 class="section-heading" id="examples-title">先操作。<em>再看它为什么这样动。</em></h2>
+          <p class="section-body">四个入口覆盖常见的触发方式。每个案例都从一个能操作的演示开始，随后拆开行为和实现。</p>
+        </header>
+        <ul class="answer-traits" aria-label="案例包含的内容">
+          {["现场演示", "效果定义", "使用场景", "实现要点", "原生示例", "GSAP 示例"].map((trait) => <li>{trait}</li>)}
+        </ul>
+        <div class="page-grid">
+          {featured.map((effect) => (
+            <a class="page-card" href={detailHref(effect.slug)}>
+              <span class="page-plate" data-family={effect.group} aria-hidden="true">
+                <span class="mini-page">
+                  <span class="mini-head"><b>FormTempo</b><span>网页动效图鉴</span></span>
+                  <span class="mini-id">{effect.number} / {total}</span>
+                  <strong>{effect.title}</strong>
+                  <span>{effect.description}</span>
+                  <span class="mini-plate"><Notation slug={effect.slug} number={effect.number} compact /></span>
+                  <b>行为定义</b><span>{effect.behavior}</span>
+                  <b>实现要点</b><span>{effect.implementation}</span>
+                </span>
+              </span>
+              <span class="life-meta"><span class="life-lang">{effect.number}</span><span class="life-kind">{categoryOf(effect.group).title}</span><span class="life-open" aria-hidden="true">↗</span></span>
+              <span class="life-q">{effect.title}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <EverydayScenarios />
+
+    <section id="types" aria-labelledby="types-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="section-label"><span>03</span><span>全部类型</span></p>
+          <h2 class="section-heading" id="types-title">按触发方式，<br /><em>浏览动效图鉴。</em></h2>
+          <p class="section-body">从触发动作入手。选一个案例，查看它怎么动、适合用在哪里，再打开详情试玩。</p>
+        </header>
+        <p class="types-summary">{groups.map(({ title }) => title).join("、")}，共 {effects.length} 个案例。</p>
+        <div class="types-index">
+          <div class="types-list">
+            {groups.map((group) => (
+              <section aria-labelledby={group.id}>
+                <h3 class="type-group" id={group.id}>{group.title} · {group.en}</h3>
+                <ul>
+                  {effects.filter(({ group: id }) => id === group.id).map((effect) => (
+                    <li class:list={["type-item", { "is-active": effect === firstEffect }]} data-type={effect.slug}>
+                      <button type="button" aria-controls={`type-info-${effect.slug}`} aria-expanded={effect === firstEffect}>
+                        <span class="type-no" aria-hidden="true">{effect.number}</span>
+                        <span class="type-name"><small class="type-kind" lang="en">{effect.en}</small><span class="type-title">{effect.title}</span></span>
+                      </button>
+                      <div class="type-detail" id={`type-info-${effect.slug}`} inert={effect !== firstEffect}>
+                        <div>
+                          <div class="type-inline-plate" data-family={effect.group}>
+                            <Notation slug={effect.slug} number={effect.number} compact />
+                          </div>
+                          <p>{effect.behavior}</p>
+                          <div class="type-detail-actions">
+                            <ul class="type-uses" aria-label="适用场景"><li>{effect.scene.split("。")[0]}</li></ul>
+                            <a class="type-link" href={detailHref(effect.slug)} aria-label={`查看案例：${effect.title}`}>查看案例 <Arrow diagonal /></a>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+          <div class="type-preview">
+            <div class="type-plate">
+              {effects.map((effect) => (
+                <div class:list={["type-art", { "is-active": effect === firstEffect }]} data-art={effect.slug} data-family={effect.group} aria-hidden={effect !== firstEffect}>
+                  <figure class="type-sheet">
+                    <div class="type-sheet-head">
+                      <span class="type-sheet-no" aria-hidden="true">{effect.number} / {total}</span>
+                      <span class="type-sheet-title"><small>{categoryOf(effect.group).title} · 行为示意</small><strong>{effect.title}</strong></span>
+                    </div>
+                    <Notation slug={effect.slug} number={effect.number} />
+                    <figcaption class="type-sheet-caption"><p>{effect.description}</p></figcaption>
+                  </figure>
+                </div>
+              ))}
+            </div>
+            <a class="type-more type-current" href={detailHref(firstEffect.slug)}>
+              <span>试玩<span data-type-current-title>{firstEffect.title}</span></span>
+              <span class="type-more-sub" data-type-current-scene>{firstEffect.scene.split("。")[0]}</span>
+              <span class="type-more-arrow" aria-hidden="true"><Arrow /></span>
+            </a>
+            <a class="type-more" href={catalog}>
+              <span>浏览全部案例</span><span class="type-more-sub">{effects.length} 个案例 · {groups.length} 种触发方式</span>
+              <span class="type-more-arrow" aria-hidden="true"><Arrow diagonal /></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <VerificationRail />
+
+    <MaskComparison />
+
+    <section id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="section-label"><span>06</span><span>并排比较</span></p>
+          <h2 class="section-heading" id="features-title">同一张图，<em>两种状态。</em></h2>
+          <p class="section-body" id="compare-help">拖动进度条，看左图从中心展开。右图始终显示完整画面。</p>
+        </header>
+        <ClipComparison effect={clip} />
+      </div>
+    </section>
+
+    <section id="palette" aria-labelledby="palette-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="section-label"><span>07</span><span>触发方式</span></p>
+          <h2 class="section-heading" id="palette-title">从动作<em>找到类别。</em></h2>
+        </header>
+        <div class="legend">
+          {groups.map((group) => (
+            <a class="legend-chip" data-family={group.id} href={`${catalog}#${group.id}`}>
+              <span class="legend-node"><b>{group.title}</b><i>{group.en}</i></span>
+              <span class="legend-use">{group.description}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="quickstart" aria-labelledby="quickstart-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="section-label"><span>08</span><span>代码示例</span></p>
+          <h2 class="section-heading" id="quickstart-title">先试效果。<em>再复制源码。</em></h2>
+          <p class="section-body">从裁剪展开开始。同一个动效可以用原生代码实现，也可以用 GSAP 的时间轴实现。</p>
+        </header>
+        <div class="qs-layout">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="agent-tabs" role="tablist" aria-label="选择示例代码">
+                {implementations.map(({ id, title }, index) => (
+                  <button type="button" id={`source-tab-${id}`} role="tab" aria-controls={`source-${id}`}
+                    aria-selected={index === 0} tabindex={index === 0 ? 0 : -1}>{title}</button>
+                ))}
+              </div>
+            </div>
+            {implementations.map(({ id, title, lines }, index) => (
+              <div class="terminal-body" id={`source-${id}`} role="tabpanel" aria-labelledby={`source-tab-${id}`} hidden={index !== 0}>
+                <p class="install-cmt">// 裁剪展开 · {title}</p>
+                <div class="install-line">
+                  <pre class="install-cmd"><code>{lines[1].join("\n")}</code></pre>
+                  <button class="cmd-copy" type="button" data-copy-from={`full-source-${id}`} aria-describedby={`source-status-${id}`}>复制完整 HTML</button>
+                </div>
+                <template id={`full-source-${id}`}>{drivenExamples[clip.slug][id as "native" | "gsap"]}</template>
+                <a class="install-ask" href={exampleHref(id)} target="_blank" rel="noopener">打开独立示例 ↗</a>
+                <p class="copy-status" id={`source-status-${id}`} role="status"></p>
+              </div>
+            ))}
+          </div>
+          <ol class="steps">
+            {steps.map(({ title, body }, index) => (
+              <li class="step"><span class="step-num" aria-hidden="true">{index + 1}</span><div><h3>{title}</h3><p>{body}</p></div></li>
+            ))}
+          </ol>
+        </div>
+        <div class="shortcut-box">
+          <p class="shortcut-title">键盘操作</p>
+          <div class="shortcut-rows">
+            <div class="shortcut-row"><span>移动到下一个控件</span><kbd>Tab</kbd></div>
+            <div class="shortcut-row"><span>切换案例或调整进度</span><kbd>← →</kbd></div>
+            <div class="shortcut-row"><span>跳到标签首尾</span><kbd>Home / End</kbd></div>
+            <div class="shortcut-row"><span>关闭演示</span><kbd>Esc</kbd></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cta" aria-labelledby="cta-title">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <div class="wrap cta-inner">
+        <h2 class="cta-h" id="cta-title">挑一个动效。<br /><em>试试看。</em></h2>
+        <p class="cta-sub">打开图鉴，先看看它怎么动，再决定它适合放在页面的哪里。</p>
+        <p class="cta-prompt"><span class="cta-mark" aria-hidden="true">›</span><span id="cta-prompt" data-prompts={JSON.stringify(featured.map(({ description }) => description))}>{effects[0].description}</span><span class="cta-caret" aria-hidden="true"></span></p>
+        <div class="cta-actions">
+          <a class="btn btn-primary btn-lg" href={catalog}>浏览动效图鉴 <Arrow /></a>
+          <a class="btn btn-ghost btn-lg" href={repository} target="_blank" rel="noopener">GitHub <Arrow diagonal /></a>
+        </div>
+      </div>
+    </section>
+
+    <dialog class="demo-dialog" id="demo-dialog" aria-labelledby="demo-title">
+      <div class="demo-frame">
+        <div class="demo-frame-bar">
+          <span class="demo-title" id="demo-title">FormTempo · 裁剪展开</span>
+          <button class="demo-close" id="demo-close" type="button" aria-label="关闭演示"><span aria-hidden="true">×</span></button>
+        </div>
+        <div class="demo-video-box"><iframe title="裁剪展开 · 原生现场演示"></iframe></div>
+      </div>
+    </dialog>
+  </div>
+</Site>
+<script>
+  import "../scripts/home";
+</script>

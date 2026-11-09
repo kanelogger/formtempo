@@ -1,0 +1,92 @@
+/* Paper and blue-gray support one persimmon action color. Previews can switch independently. */
+:root,
+[data-preview-theme="light"] [data-preview-palette] {
+  color-scheme:light;
+  --bg:#fbfaf7;
+  --bg-2:#f5f7f9;
+  --surface:#ffffff;
+  --surface-2:#edf3f6;
+  --sunken:#e5edf2;
+  --plate:#f7fafb;
+  --bg-rgb:251,250,247;
+
+  --text:#222c36;
+  --text-2:#434f5d;
+  --text-3:#5c6875;
+  --fg-rgb:34,44,54;
+  --line:rgba(var(--fg-rgb),.11);
+  --line-hi:rgba(var(--fg-rgb),.19);
+  --line-strong:rgba(var(--fg-rgb),.52);
+  --shadow-rgb:40,58,78;
+  --shadow-k:.13;
+
+  --accent:#b8412c;
+  --accent-text:var(--accent);
+  --accent-rgb:184,65,44;
+  --accent-hover:#963324;
+  --accent-soft:rgba(var(--accent-rgb),.09);
+  --on-accent:#ffffff;
+  --btn-bg:var(--accent);
+  --btn-fg:var(--on-accent);
+  --btn-hover:var(--accent-hover);
+  --signal:#2b6a57;
+  --signal-text:#226250;
+  --signal-rgb:43,106,87;
+
+  --title-top:var(--text);
+  --title-end:color-mix(in srgb,var(--text) 78%,var(--bg));
+  --star:#876221;
+  --family-pointer:#275d7f;
+  --family-trigger:#825c20;
+  --family-driven:var(--accent);
+  --family-transition:#6d5581;
+}
+
+:root[data-theme="dark"],
+[data-preview-theme="dark"] [data-preview-palette] {
+  color-scheme:dark;
+  --bg:#19222d;
+  --bg-2:#1d2936;
+  --surface:#222e3c;
+  --surface-2:#2b3c4d;
+  --sunken:#121a24;
+  --plate:#233142;
+  --bg-rgb:25,34,45;
+
+  --text:#f6f5f1;
+  --text-2:#d8dce1;
+  --text-3:#b4becc;
+  --fg-rgb:246,245,241;
+  --line:rgba(var(--fg-rgb),.11);
+  --line-hi:rgba(var(--fg-rgb),.19);
+  --line-strong:rgba(var(--fg-rgb),.42);
+  --shadow-rgb:8,14,22;
+  --shadow-k:1;
+
+  --accent:#ff9d7c;
+  --accent-text:var(--accent);
+  --accent-rgb:255,157,124;
+  --accent-hover:#ffb399;
+  --accent-soft:rgba(var(--accent-rgb),.12);
+  --on-accent:#281912;
+  --btn-bg:var(--accent);
+  --btn-fg:var(--on-accent);
+  --btn-hover:var(--accent-hover);
+  --signal:#84c7b0;
+  --signal-text:#94d5bc;
+  --signal-rgb:132,199,176;
+
+  --title-top:var(--text);
+  --title-end:color-mix(in srgb,var(--text) 78%,var(--bg));
+  --star:#e9bf6a;
+  --family-pointer:#9dc5e4;
+  --family-trigger:#e9bf6a;
+  --family-driven:var(--accent);
+  --family-transition:#ceb6e5;
+}
+
+:root {
+  --window-close:#ef9278;
+  --window-minimize:#efbc74;
+  --window-expand:#8fb7ca;
+}

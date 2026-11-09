@@ -1,0 +1,518 @@
+---
+import Site from "../../layouts/Site.astro";
+import Arrow from "../../components/Arrow.astro";
+import Pointer from "../../demos/Pointer.astro";
+import Trigger from "../../demos/Trigger.astro";
+import Driven from "../../demos/Driven.astro";
+import Transition from "../../demos/Transition.astro";
+import PointerComparison from "../../demos/PointerComparison.astro";
+import SectionSnap from "../../demos/SectionSnap.astro";
+import ScaleReveal from "../../demos/ScaleReveal.astro";
+import VideoScrub from "../../demos/VideoScrub.astro";
+import SoftMaskReveal from "../../demos/SoftMaskReveal.astro";
+import ScrollCamera from "../../demos/ScrollCamera.astro";
+import HoverReveal from "../../demos/HoverReveal.astro";
+import ScrollModel from "../../demos/ScrollModel.astro";
+import ScrollScene from "../../demos/ScrollScene.astro";
+import { demoGuides } from "../../demos/demo-guide-cases";
+import "../../demos/demo-guide.css";
+import { examples } from "../../examples";
+import { effects, groups, routes, total, withBase } from "../../effects";
+
+const demos = { pointer: Pointer, trigger: Trigger, driven: Driven, transition: Transition };
+const caseDemos = new Map([
+  ["magnetic-button", PointerComparison],
+  ["pointer-enter-once", PointerComparison],
+  ["section-snap", SectionSnap],
+  ["scale-reveal", ScaleReveal],
+  ["video-scrub", VideoScrub],
+  ["soft-mask-reveal", SoftMaskReveal],
+  ["scroll-camera", ScrollCamera],
+  ["hover-reveal", HoverReveal],
+  ["scroll-3d-model", ScrollModel],
+  ["scroll-3d-scene", ScrollScene],
+]);
+
+export function getStaticPaths() {
+  return effects.map((effect) => ({
+    params: { slug: effect.slug },
+    props: { effect },
+  }));
+}
+
+const { effect } = Astro.props;
+const group = groups.find((item) => item.id === effect.group)!;
+const Demo = caseDemos.get(effect.slug) ?? demos[effect.group];
+const pair = examples[effect.slug];
+const deferExampleSource = effect.slug === "video-scrub";
+const comparison = effects.find((item) => item.slug === effect.compareWith);
+const related = effects.filter((item) => item.group === effect.group && item.slug !== effect.slug);
+const codeOptions = [
+  { title: "原生 HTML / CSS / JS", key: "native", summary: "完整示例，可另存为 HTML 直接打开。", html: pair.native },
+  { title: "GSAP 3.15.0", key: "gsap", summary: "完整示例，从 CDN 加载指定版本。", html: pair.gsap },
+];
+const lessons = [
+  { title: "使用场景", body: effect.scene },
+  { title: "行为定义", body: effect.behavior },
+  { title: "实现要点", body: effect.implementation },
+];
+---
+<Site title={`${effect.title} · FormTempo`} description={effect.description} section="index">
+  <article class="wrap detail">
+    <nav class="crumbs" aria-label="当前位置">
+      <a href={withBase(routes.index)}>动效图鉴</a>
+      <span aria-hidden="true">/</span>
+      <a href={`${withBase(routes.index)}#${group.id}`}>{group.title}</a>
+    </nav>
+    <header class="detail-head">
+      <h1>{effect.title}</h1>
+      <p class="detail-intro">{effect.description}</p>
+    </header>
+    <section class="demo-window" aria-label={`${effect.title}演示`}>
+      <div class="window-bar">
+        <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="window-address">
+          <span>{effect.number} / {total}</span>
+          <b lang="en">{effect.en}</b>
+        </span>
+        <a class="window-open" href={withBase(routes.example(effect.slug, "native"))}>
+          <span>打开示例</span><Arrow diagonal />
+        </a>
+      </div>
+      <div class="demo-view" data-demo-guide={JSON.stringify(demoGuides[effect.slug])}>
+        <Demo variant={effect.slug} />
+        {comparison && (
+          <div class="demo-comparison">
+            <a href={withBase(routes.effect(comparison.slug))} data-comparison>
+              <span>对照案例</span> {comparison.title} <Arrow diagonal />
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section class="reading" aria-label="案例说明与实现">
+      <ol class="steps">
+        {lessons.map(({ title, body }, index) => (
+          <li class="step">
+            <span class="step-num" aria-hidden="true">{index + 1}</span>
+            <div>
+              <h2>{title}</h2>
+              <p>{body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div class="terminal" data-terminal>
+        <div class="terminal-bar" data-terminal-bar hidden>
+          <div class="agent-tabs" role="tablist" aria-label="示例实现">
+            {codeOptions.map((option) => (
+              <button
+                id={`source-tab-${option.key}`}
+                data-source-tab
+                type="button"
+                role="tab"
+                aria-controls={`source-${option.key}`}
+                aria-selected="false"
+              >{option.title}</button>
+            ))}
+          </div>
+        </div>
+        {codeOptions.map((option) => (
+          <div class="terminal-body" id={`source-${option.key}`} data-example>
+            <h2 class="fallback-title" data-fallback-title>{option.title}</h2>
+            <div class="code-actions">
+              <p>{option.summary}</p>
+              <a class="code-link" href={withBase(routes.example(effect.slug, option.key))}>打开示例 <Arrow diagonal /></a>
+              <button type="button" class="cmd-copy" data-copy aria-describedby={`copy-${option.key}`} hidden>复制代码</button>
+            </div>
+            <p class="code-status" id={`copy-${option.key}`} data-copy-status role="status"></p>
+            <details class="source">
+              <summary>查看源码</summary>
+              <pre tabindex="0" aria-label={`${option.title} 示例源码`}><code data-source-url={deferExampleSource ? withBase(routes.example(effect.slug, option.key)) : undefined}>{deferExampleSource ? "可打开示例查看完整 HTML。" : option.html}</code></pre>
+            </details>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <nav class="related" aria-label="同组案例">
+      <h2>同组案例</h2>
+      <div class="related-links">
+        {related.map((item) => (
+          <a href={withBase(routes.effect(item.slug))} class="related-link">
+            <span class="related-title">{item.title}</span>
+            <span class="related-sub" lang="en">{item.number} / {item.en}</span>
+            <span class="related-arrow"><Arrow diagonal /></span>
+          </a>
+        ))}
+      </div>
+    </nav>
+  </article>
+</Site>
+
+<script>
+  import { bindDemoGuide } from "../../demos/demo-guide.js";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-demo-guide]")) {
+    bindDemoGuide(root, JSON.parse(root.dataset.demoGuide!));
+  }
+</script>
+
+<script>
+  import { copyText } from "../../scripts/clipboard";
+
+  const terminal = document.querySelector<HTMLElement>("[data-terminal]");
+  if (terminal) {
+    const tabs = [...terminal.querySelectorAll<HTMLButtonElement>("[data-source-tab]")];
+    const panels = [...terminal.querySelectorAll<HTMLElement>("[data-example]")];
+    const bar = terminal.querySelector<HTMLElement>("[data-terminal-bar]");
+    let revision = 0;
+
+    function selectTab(index: number, focus = false) {
+      revision += 1;
+      tabs.forEach((tab, i) => {
+        const active = i === index;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+        panels[i].hidden = !active;
+        const status = panels[i].querySelector("[data-copy-status]");
+        if (status) status.textContent = "";
+      });
+      if (focus) tabs[index].focus();
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => selectTab(index));
+      tab.addEventListener("keydown", (event) => {
+        const destinations: Record<string, number> = {
+          ArrowRight: (index + 1) % tabs.length,
+          ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+          Home: 0,
+          End: tabs.length - 1,
+        };
+        const next = destinations[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        selectTab(next, true);
+      });
+    });
+
+    panels.forEach((panel, index) => {
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", tabs[index].id);
+      const fallbackTitle = panel.querySelector<HTMLElement>("[data-fallback-title]");
+      if (fallbackTitle) fallbackTitle.hidden = true;
+      const button = panel.querySelector<HTMLButtonElement>("[data-copy]");
+      const code = panel.querySelector("code");
+      const status = panel.querySelector("[data-copy-status]");
+      if (!button || !code || !status) return;
+      button.hidden = false;
+      const sourceUrl = code.dataset.sourceUrl;
+      let sourceRequest: Promise<string> | undefined;
+      const loadSource = () => {
+        if (!sourceUrl) return Promise.resolve(code.textContent ?? "");
+        if (!sourceRequest) {
+          code.textContent = "正在加载源码…";
+          sourceRequest = fetch(sourceUrl).then(async (response) => {
+            if (!response.ok) throw new Error("Example source unavailable");
+            const source = await response.text();
+            if (!/^<!doctype html>/i.test(source)) throw new Error("Invalid example source");
+            code.textContent = source;
+            return source;
+          }).catch((error) => {
+            sourceRequest = undefined;
+            code.textContent = "源码加载失败，重新展开可重试。";
+            throw error;
+          });
+        }
+        return sourceRequest;
+      };
+      if (sourceUrl) {
+        const details = code.closest("details");
+        details?.addEventListener("toggle", () => {
+          if (details.open) void loadSource().catch(() => {});
+        });
+      }
+      let attempts = 0;
+      button.addEventListener("click", async () => {
+        const attempt = ++attempts;
+        const selectedRevision = revision;
+        const isCurrent = () => attempt === attempts && selectedRevision === revision;
+        status.textContent = "";
+        try {
+          const source = sourceUrl ? await loadSource() : code.textContent ?? "";
+          if (!isCurrent()) return;
+          const copied = await copyText(source, isCurrent);
+          if (isCurrent()) status.textContent = copied ? "已复制代码。" : "复制失败，可重试或展开源码手动选择。";
+        } catch {
+          if (isCurrent()) status.textContent = "源码加载失败，可重试或打开示例。";
+        }
+      });
+    });
+
+    if (bar && tabs.length) {
+      selectTab(0);
+      bar.hidden = false;
+    }
+  }
+</script>
+
+<style>
+  .detail { padding-block: calc(var(--nav-h) + 3rem) clamp(4rem, 9vw, 7rem); }
+  .crumbs { display: flex; align-items: center; gap: .65rem; color: var(--text-3); font-size: .8125rem; }
+  .crumbs a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+  .crumbs a:hover { color: var(--accent-text); }
+  .detail-head { margin-block: 1.25rem clamp(1.5rem, 4vw, 3rem); }
+  h1 {
+    font: 600 clamp(2.75rem, 6vw, 5rem)/1.16 var(--font-heading);
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+  .detail-intro { margin-top: 1.25rem; max-width: 560px; color: var(--text-2); font-size: 1.0625rem; line-height: 1.72; }
+
+  .demo-window {
+    border: 1px solid rgba(var(--fg-rgb), .12);
+    border-radius: 18px;
+    background: var(--plate);
+    box-shadow: 0 0 0 1px rgba(var(--shadow-rgb), calc(.6 * var(--shadow-k))),
+      0 50px 120px -20px rgba(var(--shadow-rgb), calc(.8 * var(--shadow-k))),
+      0 0 140px -30px rgba(var(--accent-rgb), .32);
+  }
+  .window-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 52px;
+    padding: 0 .75rem 0 1.1rem;
+    border-bottom: 1px solid var(--line);
+    border-radius: 17px 17px 0 0;
+    background: rgba(var(--bg-rgb), .92);
+  }
+  .window-dots { display: flex; gap: 7px; flex: none; }
+  .window-dots i { width: 11px; height: 11px; border-radius: 50%; background: var(--window-close); opacity: .85; }
+  .window-dots i:nth-child(2) { background: var(--window-minimize); }
+  .window-dots i:nth-child(3) { background: var(--window-expand); }
+  .window-address {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    padding-inline: .9rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(var(--shadow-rgb), calc(.35 * var(--shadow-k)));
+    color: var(--text-3);
+    font: .6875rem/1 var(--font-mono);
+    white-space: nowrap;
+  }
+  .window-address b { min-width: 0; overflow: hidden; color: var(--signal-text); font-weight: 500; text-overflow: ellipsis; }
+  .window-open {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    min-height: 34px;
+    padding-inline: .85rem;
+    border: 1px solid var(--line-hi);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: .8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: border-color .2s var(--ease-out), color .2s var(--ease-out);
+  }
+  .window-open:hover { border-color: var(--accent); color: var(--accent-text); }
+  :is(.window-open, .demo-comparison, .code-link, .related-arrow) :global(svg) { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.45; }
+
+  .demo-view {
+    --trigger-sticky-top: calc(var(--nav-h) + 1rem);
+    display: grid;
+    min-width: 0;
+    padding: clamp(.8rem, 3vw, 2.25rem);
+    border-radius: 0 0 17px 17px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .demo-view > :global(*) { max-width: 54rem; width: 100%; margin-inline: auto; }
+  .demo-view :global(.driven) { --driven-top: calc(var(--nav-h) + 1rem); }
+  .demo-comparison { margin-top: 1rem; border-top: 1px solid var(--line); }
+  .demo-comparison a {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    min-height: 44px;
+    color: var(--accent-text);
+    font-size: .875rem;
+    font-weight: 600;
+    text-underline-offset: .2em;
+  }
+  .demo-comparison a span { color: var(--text-2); font-weight: 400; }
+
+  .reading {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+    gap: 3.5rem;
+    margin-block: clamp(4rem, 8vw, 7rem) 0;
+  }
+  .steps { display: flex; flex-direction: column; gap: 2rem; padding-top: .5rem; list-style: none; }
+  .step { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 1.1rem; }
+  .step-num {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line-hi);
+    border-radius: 50%;
+    color: var(--accent-text);
+    font: italic 1.25rem/1 var(--font-number);
+  }
+  .step h2, .fallback-title { margin-block: .35rem .4rem; color: var(--text); font: 500 1.125rem/1.35 var(--font-title); letter-spacing: -.015em; }
+  .step p { color: var(--text-2); font-size: 1rem; line-height: 1.7; text-wrap: pretty; }
+
+  .terminal {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line-hi);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 0 40px 100px -40px rgba(var(--accent-rgb), .25);
+  }
+  .terminal-bar { display: flex; padding: .5rem; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+  .agent-tabs { display: flex; gap: .25rem; }
+  .agent-tabs button {
+    flex: none;
+    min-height: 34px;
+    padding-inline: .85rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-3);
+    font-size: .8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color .2s var(--ease-out), background .2s var(--ease-out);
+  }
+  .agent-tabs button:hover { color: var(--text); }
+  .agent-tabs button[aria-selected="true"] { border-color: var(--line-hi); background: rgba(var(--fg-rgb), .08); color: var(--text); }
+  .terminal-body { padding: 1.5rem 1.6rem 1.75rem; color: var(--text-2); }
+  .terminal-body + .terminal-body:not([role="tabpanel"]) { border-top: 1px solid var(--line); }
+  .code-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .9rem; font-size: .8125rem; }
+  .code-actions p { flex: 1 1 13rem; line-height: 1.65; }
+  .code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 34px;
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+  .code-link:hover { text-decoration: underline; text-underline-offset: .22em; }
+  .cmd-copy {
+    min-height: 34px;
+    padding-inline: .65rem;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: rgba(var(--fg-rgb), .06);
+    color: var(--text-2);
+    font: .75rem/1 var(--font-mono);
+    cursor: pointer;
+    transition: color .18s var(--ease-out), background .18s var(--ease-out);
+  }
+  .cmd-copy:hover { background: rgba(var(--fg-rgb), .12); color: var(--text); }
+  .code-status:not(:empty) { margin-block-start: .5rem; color: var(--signal-text); font-size: .8125rem; }
+  .source { margin-top: 1.1rem; border: 1px solid var(--line-hi); border-radius: 10px; background: var(--sunken); }
+  .source summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding-inline: .85rem;
+    color: var(--text-2);
+    font-size: .8125rem;
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+  }
+  .source summary:hover { color: var(--accent-text); }
+  .source summary::-webkit-details-marker { display: none; }
+  .source summary::after {
+    content: "";
+    width: .5rem;
+    height: .5rem;
+    margin-inline-end: .2rem;
+    border: solid currentColor;
+    border-width: 0 1px 1px 0;
+    transform: translateY(-2px) rotate(45deg);
+  }
+  .source[open] summary::after { transform: translateY(2px) rotate(225deg); }
+  pre {
+    max-height: 28rem;
+    margin: 0;
+    overflow: auto;
+    padding: .9rem;
+    border-top: 1px solid var(--line);
+    color: var(--text);
+    font: .8125rem/1.85 var(--font-mono);
+    tab-size: 2;
+  }
+  pre code { font: inherit; }
+  :is(pre, summary, .agent-tabs button):focus-visible { outline-offset: -2px; }
+
+  .related { margin-top: clamp(3.5rem, 8vw, 6rem); }
+  .related h2 { margin-bottom: .85rem; color: var(--text); font: 500 1.125rem/1.35 var(--font-title); }
+  .related-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .related-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .2rem 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--line-hi);
+    border-radius: 14px;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color .25s var(--ease-out), background .25s var(--ease-out);
+  }
+  .related-link:hover { border-color: rgba(var(--accent-rgb), .55); background: var(--accent-soft); }
+  .related-title { font: 500 1rem/1.3 var(--font-title); }
+  .related-sub { grid-column: 1; color: var(--text-3); font: .75rem/1.5 var(--font-mono); }
+  .related-arrow {
+    display: grid;
+    place-items: center;
+    grid-area: 1 / 2 / span 2;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line-hi);
+    border-radius: 50%;
+    transition: background .25s var(--ease-out), border-color .25s var(--ease-out), transform .25s var(--ease-out);
+  }
+  .related-link:hover .related-arrow { border-color: var(--accent); background: var(--accent); color: var(--on-accent); transform: rotate(12deg); }
+
+  @media (max-width: 900px) {
+    .reading { grid-template-columns: minmax(0, 1fr); gap: 2.25rem; }
+  }
+
+  @media (max-width: 640px) {
+    .detail { padding-top: calc(var(--nav-h) + 1.75rem); }
+    h1 { font-size: clamp(2.25rem, 10vw, 3.2rem); }
+    .detail-intro { font-size: .9375rem; }
+    .demo-window { border-radius: 14px; }
+    .window-bar { height: 48px; gap: .4rem; padding-inline: .4rem; border-radius: 13px 13px 0 0; }
+    .window-dots { display: none; }
+    .window-open { padding-inline: .6rem; }
+    .demo-view { border-radius: 0 0 13px 13px; }
+    .terminal-body { padding: 1.25rem; }
+    .related-links { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .related-link:hover .related-arrow { transform: none; }
+  }
+</style>

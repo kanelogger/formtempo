@@ -1,0 +1,21 @@
+---
+import { pointerComparisonMarkup, pointerComparisonTitles } from './pointer-comparison-markup';
+import './pointer-comparison.css';
+
+interface Props { variant: string }
+
+const { variant } = Astro.props;
+const pointerVariant = variant as keyof typeof pointerComparisonTitles;
+---
+
+<Fragment set:html={pointerComparisonMarkup(pointerVariant)} />
+
+<script>
+  import { bindMagneticButton } from './pointer-comparison-interaction.js';
+  import { bindEnterPulse } from './pointer-comparison-pulse.js';
+
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-pointer-comparison]')) {
+    if (demo.dataset.pointerComparison === 'magnetic-button') bindMagneticButton(demo);
+    else bindEnterPulse(demo);
+  }
+</script>

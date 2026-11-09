@@ -1,0 +1,18 @@
+[data-transition-view] > .transition-guide-target {
+  position: absolute;
+  z-index: 2;
+  inset: 62% auto auto 55%;
+  min-block-size: 44px;
+  margin: 0;
+  padding: .4rem .75rem;
+  border: 1px solid var(--transition-accent, #6d5581);
+  border-radius: 7px;
+  background: var(--surface, #fff);
+  color: var(--text, #222c36);
+  font: inherit;
+  font-size: .8125rem;
+  cursor: pointer;
+}
+
+.transition-guide-target:is(:hover, :active) { background: var(--transition-tint, #f0ebf5); }
+.transition-guide-target:focus-visible { outline: 2px solid var(--transition-accent, #6d5581); outline-offset: 3px; }

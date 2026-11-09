@@ -1,0 +1,13 @@
+.hover-reveal__card { position: relative; overflow: hidden; min-height: 18rem; border-radius: 12px; background: #e8f3fa; color: #173e56; }
+.hover-reveal__art { position: absolute; inset: 0; display: grid; place-items: center; }
+.hover-reveal__art span { width: min(33%, 11rem); aspect-ratio: 1; border-radius: 50%; background: #ef784d; box-shadow: 3rem 1rem 0 -1rem #a7c8d9; }
+.hover-reveal__heading { position: absolute; inset: auto 1.5rem 1.5rem; display: grid; gap: .25rem; }
+.hover-reveal__heading strong, .hover-reveal__info strong { font-size: 1.4rem; }
+.hover-reveal__heading small { font-size: .7rem; letter-spacing: .08em; }
+.hover-reveal__info { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: end; padding: 1.5rem; background: #275d7f; color: #fff; transition: opacity .3s ease, visibility .3s; }
+.hover-reveal__info p { margin: .5rem 0 0; line-height: 1.7; }
+.hover-reveal.is-ready .hover-reveal__info[aria-hidden="true"] { opacity: 0; visibility: hidden; }
+.hover-reveal__hint { margin: .8rem 0; color: var(--text-2, #434f5d); font-size: .875rem; }
+.hover-reveal button { min-height: 44px; padding: .4rem .85rem; border: 1px solid var(--line-strong, #82939f); border-radius: 7px; background: var(--surface, #fff); color: var(--text, #222c36); font: inherit; cursor: pointer; }
+.hover-reveal button:focus-visible { outline: 2px solid #b8412c; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .hover-reveal__info { transition: none; } }

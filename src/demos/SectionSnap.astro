@@ -1,0 +1,12 @@
+---
+import { sectionSnapMarkup } from './section-snap-content';
+import './section-snap.css';
+---
+
+<Fragment set:html={sectionSnapMarkup} />
+
+<script>
+  import { bindSectionSnap } from './section-snap-interaction.js';
+
+  document.querySelectorAll('[data-section-snap]').forEach((root) => bindSectionSnap(root));
+</script>

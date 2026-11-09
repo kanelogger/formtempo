@@ -1,0 +1,153 @@
+---
+import { effects } from "../effects";
+
+const gates = [
+  { command: "check", title: "检查页面与组件类型", body: "通过 Astro 检查页面和组件的类型，定位属性、数据和脚本中的错误。", delay: "1.5s" },
+  { command: "build", title: "生成静态站点", body: "把首页、目录、案例详情和独立示例构建为可发布的文件。", delay: "2.3s" },
+  { command: "verify-build", title: "回查实际产物", body: "验证页面和示例是否齐全、本地链接和锚点是否可达，以及独立示例的脚本语法。", delay: "2.9s" },
+  { command: "gzip", title: "限制首页脚本体积", body: "递归统计首页加载的本地 JavaScript，gzip 后的体积必须在预算内。", delay: "3.6s" },
+];
+
+const targets = [
+  { label: "首页", delay: "1.6s" },
+  { label: "目录", delay: "1.7s" },
+  { label: "案例详情", delay: "1.8s" },
+  { label: "独立示例", delay: "1.9s" },
+];
+const checks = [
+  { label: "本地资源", delay: "3s" },
+  { label: "页面链接", delay: "3.15s" },
+  { label: "页内锚点", delay: "3.3s" },
+  { label: "示例脚本", delay: "3.45s" },
+];
+const exampleCount = effects.length * 2;
+---
+<section id="trust" aria-labelledby="trust-title">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="section-label"><span>04</span><span>发布验证</span></p>
+      <h2 class="section-heading" id="trust-title">每次构建，<br /><em>检查实际产物。</em></h2>
+      <p class="section-body">从类型检查到静态构建，再逐项读取生成的文件。运行 <code>npm run verify</code> 就能执行这套检查。下方回放一次校验通过的示例。</p>
+    </header>
+    <div class="trust-layout" id="trust-run">
+      <ol class="gates">
+        {gates.map(({ command, title, body, delay }, index) => (
+          <li class="gate" style={`--d:${delay}`}>
+            <span class="gate-no" aria-hidden="true">0{index + 1}</span>
+            <div><h3><code>{command}</code><span>{title}</span></h3><p>{body}</p></div>
+            <span class="gate-pass" aria-hidden="true">PASS</span>
+          </li>
+        ))}
+      </ol>
+      <figure class="run" aria-labelledby="run-title">
+        <figcaption class="run-bar">
+          <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="run-title" id="run-title">verify · 示例回放</span>
+        </figcaption>
+        <div class="run-body">
+          <p class="t-line t-cmd"><span aria-hidden="true">$ </span>npm run verify</p>
+          <p class="t-line t-ok" style="--d:3.9s" lang="en">Verified homepage, directory, {effects.length} cases and {exampleCount} examples.</p>
+          <p class="t-line" style="--d:4.05s" lang="en">checks{gates.map(({ command }) => <>{" "}<b>{command}:pass</b></>)}</p>
+          <p class="t-line" style="--d:4.2s" lang="en">output dist/</p>
+        </div>
+        <div class="receipt-sum">
+          <p class="sum-head">验证摘要</p>
+          <dl>
+            <div class="sum-row">
+              <dt class="sum-k" lang="en">routes</dt>
+              <dd class="sum-v">
+                <b class="t-line" style="--d:1.6s">{effects.length} 个案例 · {exampleCount} 份示例</b>
+                <ul class="chips">{targets.map(({ label, delay }) => <li style={`--d:${delay}`}>{label}</li>)}</ul>
+              </dd>
+            </div>
+            <div class="sum-row">
+              <dt class="sum-k" lang="en">references</dt>
+              <dd class="sum-v">
+                <ul class="chips">{checks.map(({ label, delay }) => <li style={`--d:${delay}`}>{label}</li>)}</ul>
+                <small class="t-line" style="--d:3.45s">逐项读取生成的文件</small>
+              </dd>
+            </div>
+            <div class="sum-row">
+              <dt class="sum-k" lang="en">gzip</dt>
+              <dd class="sum-v"><code class="t-line" style="--d:3.6s">20 KiB · 首页 JavaScript 上限</code></dd>
+            </div>
+          </dl>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<script>
+  const trust = document.querySelector<HTMLElement>("#trust-run");
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  if (trust && !motion.matches && "IntersectionObserver" in window && trust.getBoundingClientRect().top >= innerHeight) {
+    const threshold = Math.min(0.3, innerHeight / trust.offsetHeight / 2);
+    trust.classList.add("is-armed");
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some(({ intersectionRatio }) => intersectionRatio >= threshold)) return;
+      observer.disconnect();
+      trust.classList.replace("is-armed", "is-run");
+    }, { threshold });
+    observer.observe(trust);
+    motion.addEventListener("change", () => {
+      observer.disconnect();
+      trust.classList.remove("is-armed", "is-run");
+    }, { once: true });
+  }
+</script>
+
+<style>
+  #trust { padding:8rem 0 0; }
+  .trust-layout { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:3.5rem; align-items:start; }
+  .gates { position:relative; list-style:none; display:flex; flex-direction:column; }
+  .gates::before { content:''; position:absolute; left:19px; top:28px; bottom:28px; width:1px; background:var(--line-hi); }
+  .gates::after { content:''; position:absolute; left:19px; top:28px; width:1px; height:calc(100% - 56px); background:linear-gradient(var(--accent),var(--signal)); transform-origin:top; box-shadow:0 0 12px rgba(var(--accent-rgb),.6); }
+  .gate { position:relative; display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:1rem; align-items:start; padding:1.15rem 0; }
+  .gate-no { position:relative; z-index:1; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--line-hi); background:var(--bg); font-family:var(--font-mono); font-size:.6875rem; color:var(--accent-text); transition:border-color .4s var(--ease-out),box-shadow .4s var(--ease-out); }
+  .gate h3 { display:flex; flex-wrap:wrap; align-items:baseline; gap:.3rem .65rem; margin:.45rem 0 .4rem; font-family:var(--font-grot); font-size:1.125rem; font-weight:500; letter-spacing:-.015em; color:var(--text); }
+  .gate h3 code { padding:.12rem .45rem; border-radius:6px; background:rgba(var(--fg-rgb),.07); font-family:var(--font-mono); font-size:.75rem; font-weight:500; color:var(--accent-text); }
+  .gate p { font-size:.875rem; line-height:1.65; color:var(--text-2); text-wrap:pretty; }
+  .gate-pass { margin-top:.55rem; padding:.2rem .5rem; border-radius:6px; border:1px solid rgba(var(--signal-rgb),.45); background:rgba(var(--signal-rgb),.1); font-family:var(--font-mono); font-size:.5625rem; font-weight:600; letter-spacing:.14em; color:var(--signal-text); }
+  .run { position:sticky; top:calc(var(--nav-h) + 2rem); border-radius:16px; overflow:hidden; border:1px solid var(--line-hi); background:var(--surface); box-shadow:0 40px 100px -40px rgba(var(--accent-rgb),.3); }
+  .run-bar { display:flex; align-items:center; gap:1rem; height:44px; padding:0 1rem; border-bottom:1px solid var(--line); }
+  .run-title { font-family:var(--font-mono); font-size:.6875rem; letter-spacing:.06em; color:var(--text-3); }
+  .run-body { padding:1.25rem 1.4rem 1.1rem; font-family:var(--font-mono); font-size:.78rem; line-height:1.9; color:var(--text-2); overflow-wrap:anywhere; }
+  .t-cmd { width:max-content; max-width:100%; color:var(--text); }
+  .t-cmd > span { color:var(--accent-text); }
+  .t-ok { color:var(--signal-text); font-weight:600; }
+  .t-line b { display:inline-block; font-weight:500; color:var(--signal-text); }
+  .receipt-sum { padding:1rem 1.4rem 1.4rem; border-top:1px dashed var(--line-hi); background:rgba(var(--fg-rgb),.02); }
+  .sum-head { margin-bottom:.75rem; font-family:var(--font-mono); font-size:.5625rem; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--text-3); }
+  .sum-row { display:grid; grid-template-columns:72px minmax(0,1fr); gap:1rem; padding:.5rem 0; border-top:1px solid var(--line); }
+  .sum-row:first-of-type { border-top:0; }
+  .sum-k { font-family:var(--font-mono); font-size:.6875rem; color:var(--text-3); padding-top:.2rem; }
+  .sum-v { display:grid; gap:.45rem; font-size:.75rem; color:var(--text-2); }
+  .sum-v > b { font-family:var(--font-grot); font-size:1.125rem; font-weight:500; color:var(--text); }
+  .sum-v code { font-family:var(--font-mono); font-size:.75rem; color:var(--text); }
+  .sum-v small { font-family:var(--font-mono); font-size:.6875rem; color:var(--text-3); }
+  .chips { display:flex; flex-wrap:wrap; gap:.35rem; list-style:none; }
+  .chips li { display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .45rem; border-radius:6px; border:1px solid var(--line); background:var(--bg-2); font-family:var(--font-mono); font-size:.625rem; color:var(--text-2); }
+  .chips li::before { content:""; width:.5rem; height:.3rem; border:solid var(--signal-text); border-width:0 0 1px 1px; transform:translateY(-.05rem) rotate(-45deg); }
+  /* The verification sequence only replays the first time it comes into view. */
+  @media (prefers-reduced-motion:no-preference) {
+    .trust-layout.is-armed .t-line, .trust-layout.is-armed .chips li, .trust-layout.is-armed .gate-pass { opacity:0; }
+    .trust-layout.is-armed .gates::after { transform:scaleY(0); }
+    .trust-layout.is-run .t-line, .trust-layout.is-run .chips li { animation:runIn .45s var(--ease-out) var(--d,0s) both; }
+    /* impeccable-disable-next-line bounce-easing -- keep the reference verification stamp motion */
+    .trust-layout.is-run .gate-pass { animation:passIn .5s cubic-bezier(.3,1.6,.5,1) var(--d,0s) both; }
+    .trust-layout.is-run .gate-no { animation:gateLit .8s var(--ease-out) var(--d,0s) both; }
+    @media(min-width:901px) { .trust-layout.is-run .t-cmd { animation:typeIn 1.3s steps(16,end) .1s both; } }
+    .trust-layout.is-run .gates::after { animation:gateLine 2.4s cubic-bezier(.5,0,.3,1) 1.3s both; }
+    @keyframes runIn { from { opacity:0; transform:translateY(4px); } }
+    @keyframes passIn { from { opacity:0; transform:scale(.6); } }
+    @keyframes gateLit { 40% { border-color:var(--accent); box-shadow:0 0 0 6px rgba(var(--accent-rgb),.16); } to { border-color:rgba(var(--accent-rgb),.6); } }
+    @keyframes typeIn { from { clip-path:inset(0 100% 0 0); } to { clip-path:inset(0 0 0 0); } }
+    @keyframes gateLine { from { transform:scaleY(0); } }
+  }
+  @media (max-width:900px) { .trust-layout { grid-template-columns:1fr; gap:2rem; } .run { position:relative; top:auto; } }
+  @media (max-width:360px) {
+    .gate { gap:.75rem; }
+    .run-body, .receipt-sum { padding-inline:1rem; }
+  }
+</style>

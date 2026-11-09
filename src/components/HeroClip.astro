@@ -1,0 +1,136 @@
+---
+import { clipArtwork } from "../demos/driven-art";
+
+interface Props {
+  title: string;
+  exampleUrl: string;
+}
+
+const { title, exampleUrl } = Astro.props;
+const initial = 48;
+---
+
+<figure class="hero-clip" style={`--hero-clip-progress: ${initial}%`}>
+  <figcaption class="hero-clip-caption">
+    <span>{title}</span>
+    <code>clip-path: inset()</code>
+  </figcaption>
+  <div class="hero-clip-plate" aria-hidden="true">
+    <svg class="hero-clip-context" viewBox="0 0 760 430" focusable="false">
+      <defs><g id="hero-clip-artwork"><Fragment set:html={clipArtwork} /></g></defs>
+      <use href="#hero-clip-artwork" />
+    </svg>
+    <svg class="hero-clip-art" viewBox="0 0 760 430" focusable="false"><use href="#hero-clip-artwork" /></svg>
+  </div>
+  <div class="hero-clip-controls">
+    <label for="hero-clip-range">裁剪进度</label>
+    <input id="hero-clip-range" type="range" min="0" max="100" value={initial}
+      aria-valuetext={`${initial}%`} aria-describedby="hero-clip-help" disabled />
+    <output for="hero-clip-range" aria-hidden="true">{initial}%</output>
+  </div>
+  <div class="hero-clip-source">
+    <p id="hero-clip-help">淡色为完整画面</p>
+    <button class="cmd-copy" type="button" data-copy-url={exampleUrl} aria-describedby="hero-copy-status" aria-label="复制裁剪展开原生示例链接">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 4.5V3A1.5 1.5 0 0 0 8 1.5H3A1.5 1.5 0 0 0 1.5 3v5A1.5 1.5 0 0 0 3 9.5h1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+      <span>复制原生示例链接</span>
+    </button>
+  </div>
+  <p id="hero-copy-status" class="copy-status" role="status"></p>
+</figure>
+
+<style>
+  .hero-clip {
+    --hero-clip-inset: calc((100% - var(--hero-clip-progress)) / 2);
+    min-width: 0;
+    padding-block: .75rem .25rem;
+    border-block: 1px solid var(--line-hi);
+  }
+
+  .hero-clip-caption, .hero-clip-source {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .25rem .75rem;
+  }
+
+  .hero-clip-caption {
+    margin-bottom: .75rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .hero-clip-caption code {
+    color: var(--text-3);
+    font: 400 .75rem var(--font-mono);
+  }
+
+  .hero-clip-plate {
+    position: relative;
+    aspect-ratio: 760 / 430;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--surface-2);
+  }
+
+  .hero-clip-plate svg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-clip-context { opacity: .33; }
+  .hero-clip-art { clip-path: inset(var(--hero-clip-inset)); }
+
+  .hero-clip-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 3.5ch;
+    align-items: center;
+    gap: .75rem;
+    margin-top: .375rem;
+    color: var(--text-2);
+    font-size: .8125rem;
+  }
+
+  .hero-clip-controls input {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    accent-color: var(--accent);
+    cursor: ew-resize;
+  }
+
+  .hero-clip-controls input:disabled { cursor: default; }
+
+  .hero-clip-controls output {
+    justify-self: end;
+    color: var(--accent-text);
+    font: 500 .8125rem var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero-clip-source {
+    align-items: center;
+    color: var(--text-3);
+    font-size: .8125rem;
+  }
+
+  .hero-clip-source .cmd-copy {
+    min-height: 44px;
+    padding: .35rem 0;
+    background: transparent;
+    color: var(--text-2);
+    font: inherit;
+    letter-spacing: normal;
+    text-align: start;
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: .2em;
+  }
+
+  .hero-clip-source .cmd-copy:hover { color: var(--accent-text); }
+  .hero-clip-source svg { flex: none; }
+  .hero-clip .copy-status:not(:empty) { margin-bottom: .5rem; }
+</style>

@@ -1,0 +1,18 @@
+---
+import { scrollProgressMarkup } from './scroll-progress-markup';
+import videoUrl from './video-scrub-sun.mp4?no-inline';
+import { videoScrubStage } from './video-scrub-markup';
+import './scroll-progress.css';
+import './video-scrub.css';
+---
+
+<Fragment set:html={scrollProgressMarkup({ id: 'video-scrub', initial: 0, stage: videoScrubStage(videoUrl) })} />
+
+<script>
+  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  import { createVideoScrubber } from './video-scrub-interaction.js';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-scroll-progress="video-scrub"]')) {
+    bindScrollProgress(root, createVideoScrubber(root));
+  }
+</script>

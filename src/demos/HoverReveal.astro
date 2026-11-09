@@ -1,0 +1,9 @@
+---
+import { hoverRevealMarkup } from './hover-reveal-markup';
+import './hover-reveal.css';
+---
+<Fragment set:html={hoverRevealMarkup} />
+<script>
+  import { bindHoverReveal } from './hover-reveal-interaction.js';
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-hover-reveal]')) bindHoverReveal(demo);
+</script>

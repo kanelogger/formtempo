@@ -1,0 +1,108 @@
+.scroll-camera { margin: 0; }
+
+.scroll-camera__canvas {
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: #e8f3fa;
+}
+
+.scroll-camera__view {
+  --camera-unit: 5px;
+  position: absolute;
+  inset: 0;
+  perspective: calc(110 * var(--camera-unit));
+}
+
+@supports (width: 1cqw) {
+  /* Measure depth in units of one percent of the canvas width. */
+  .scroll-camera__view { --camera-unit: 1cqw; }
+}
+
+.scroll-camera__world {
+  position: absolute;
+  inset: 0;
+  /* Move the entire world opposite the camera path. */
+  transform: translate3d(calc((.5 - var(--camera-progress, .5)) * 39%), 0, 0);
+  transform-style: preserve-3d;
+}
+
+.scroll-camera__ground {
+  position: absolute;
+  inset: 64% -85% auto;
+  height: 83%;
+  border-block-start: 1px solid #7da0b2;
+  background:
+    linear-gradient(90deg, transparent 49.9%, #7da0b2 49.9% 50.1%, transparent 50.1%),
+    #bfd5e0;
+  transform: translateZ(calc(-33 * var(--camera-unit))) rotateX(62deg);
+  transform-origin: center top;
+}
+
+.scroll-camera__sun {
+  position: absolute;
+  inset: 39% auto auto 50%;
+  inline-size: 12.5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ef784d;
+  transform: translate3d(-50%, -50%, calc(-39 * var(--camera-unit)));
+}
+
+.scroll-camera__block {
+  position: absolute;
+  inset: 54% auto auto 62%;
+  inline-size: 15%;
+  aspect-ratio: 1;
+  transform: translateZ(calc(-4 * var(--camera-unit))) rotateX(-17deg) rotateY(-25deg);
+  transform-style: preserve-3d;
+}
+
+.scroll-camera__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.scroll-camera__face--front {
+  background: #628ca8;
+  transform: translateZ(calc(7.5 * var(--camera-unit)));
+}
+
+.scroll-camera__face--top {
+  background: #f7c98b;
+  transform: rotateX(90deg) translateZ(calc(7.5 * var(--camera-unit)));
+}
+
+.scroll-camera__face--right {
+  background: #39688b;
+  transform: rotateY(90deg) translateZ(calc(7.5 * var(--camera-unit)));
+}
+
+.scroll-camera__gate {
+  position: absolute;
+  inset: 18% auto auto 20%;
+  inline-size: 33.7%;
+  block-size: 68%;
+  transform: translateZ(calc(27 * var(--camera-unit)));
+  transform-style: preserve-3d;
+}
+
+.scroll-camera__post, .scroll-camera__lintel {
+  position: absolute;
+  background: #275d7f;
+}
+
+.scroll-camera__post { inset-block: 0; inline-size: 22%; }
+.scroll-camera__post--left { inset-inline-start: 0; }
+.scroll-camera__post--right { inset-inline-end: 0; }
+.scroll-camera__lintel { inset: 0 0 auto; block-size: 12%; }
+
+.scroll-camera figcaption {
+  margin-block-start: .65rem;
+  color: var(--text-2);
+  font-size: .875rem;
+  line-height: 1.55;
+}

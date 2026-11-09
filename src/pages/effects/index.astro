@@ -1,0 +1,381 @@
+---
+import Site from "../../layouts/Site.astro";
+import Arrow from "../../components/Arrow.astro";
+import Notation from "../../components/Notation.astro";
+import { effects, groups, routes, total, withBase } from "../../effects";
+
+const filters = [
+  { id: "all", title: `全部 / ${total}`, heading: "全部案例", description: "按触发方式浏览指针交互、滚动触发、滚动驱动和页面转场。" },
+  ...groups.map((group) => ({ ...group, heading: group.title })),
+];
+const catalogEffects = groups.flatMap((group) => effects
+  .filter((effect) => effect.group === group.id)
+  .map((effect, index) => ({ effect, group, beginsGroup: index === 0 })));
+---
+<Site title="动效图鉴 · FormTempo" description="按指针、滚动触发、滚动驱动和页面转场浏览网页动效案例。" section="index">
+  <div class="catalog" data-catalog>
+    <header class="wrap catalog-hero">
+      <div>
+        <h1>动效图鉴</h1>
+        <p class="hero-copy">按触发方式找案例。先比较动效的行为，再进入详情试玩。</p>
+      </div>
+      <dl class="proof-board" aria-label="图鉴概况">
+        <div class="proof-row"><dt>个可试玩案例</dt><dd>{total}</dd></div>
+        <div class="proof-row"><dt>种触发方式</dt><dd>{String(groups.length).padStart(2, "0")}</dd></div>
+        <div class="proof-row"><dt>种示例实现</dt><dd>02</dd></div>
+      </dl>
+    </header>
+
+    <div class="controls">
+      <div class="wrap controls-inner">
+        <nav class="filter-group" aria-label="案例分类">
+          {filters.map((filter) => (
+            <a
+              class="filter-button"
+              href={`#${filter.id === "all" ? "catalog" : filter.id}`}
+              data-filter={filter.id}
+              data-heading={filter.heading}
+              data-description={filter.description}
+              aria-current={filter.id === "all" ? "true" : undefined}
+            >{filter.title}</a>
+          ))}
+        </nav>
+        <button class="filter-button preview-theme" type="button" data-preview-toggle hidden>预览 · 浅色</button>
+      </div>
+    </div>
+
+    <section class="wrap gallery-section" id="catalog" aria-labelledby="gallery-title">
+      <div class="section-intro">
+        <h2 id="gallery-title" data-gallery-heading>{filters[0].heading}</h2>
+        <p data-gallery-description role="status">{filters[0].description}</p>
+      </div>
+      <div class="gallery-grid">
+        {catalogEffects.map(({ effect, group, beginsGroup }, index) => {
+          const href = withBase(routes.effect(effect.slug));
+
+          return (
+            <article
+              class:list={["showcase-card", { "is-featured": index === 0 }]}
+              id={beginsGroup ? effect.group : undefined}
+              data-type={effect.group}
+            >
+              <header class="card-header">
+                <span class="card-index" aria-hidden="true">{effect.number}</span>
+                <div class="card-title-wrap">
+                  <p class="card-kicker">{group.title}</p>
+                  <h3 class="card-title"><a href={href}>{effect.title}</a></h3>
+                </div>
+                <span class="card-mode" lang="en">{effect.en}</span>
+              </header>
+              <div class="preview-shell" data-preview-palette>
+                <span class="preview-flag">行为示意</span>
+                <Notation slug={effect.slug} number={effect.number} />
+              </div>
+              <div class="card-body">
+                <p class="card-description">{effect.description}</p>
+                <dl class="receipt">
+                  <dt>使用场景</dt><dd>{effect.scene}</dd>
+                </dl>
+                <a class="btn btn-primary card-open" href={href} aria-label={`试玩${effect.title}`}>试玩案例 <Arrow diagonal /></a>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  </div>
+</Site>
+
+<script>
+  const catalog = document.querySelector<HTMLElement>("[data-catalog]");
+  if (catalog) {
+    const filters = [...catalog.querySelectorAll<HTMLAnchorElement>("[data-filter]")];
+    const cards = [...catalog.querySelectorAll<HTMLElement>("[data-type]")];
+    const heading = catalog.querySelector<HTMLElement>("[data-gallery-heading]");
+    const description = catalog.querySelector<HTMLElement>("[data-gallery-description]");
+    const previewToggle = catalog.querySelector<HTMLButtonElement>("[data-preview-toggle]");
+
+    function applyFilter(active: HTMLAnchorElement) {
+      const type = active.dataset.filter;
+      for (const card of cards) card.hidden = type !== "all" && card.dataset.type !== type;
+      for (const filter of filters) {
+        if (filter === active) filter.setAttribute("aria-current", "true");
+        else filter.removeAttribute("aria-current");
+      }
+      if (heading) heading.textContent = active.dataset.heading ?? "";
+      if (description) description.textContent = active.dataset.description ?? "";
+      const rail = active.parentElement;
+      if (rail && rail.scrollWidth > rail.clientWidth) {
+        const tab = active.getBoundingClientRect();
+        const track = rail.getBoundingClientRect();
+        rail.scrollLeft += Math.min(0, tab.left - track.left) + Math.max(0, tab.right - track.right);
+      }
+    }
+
+    function syncFilter() {
+      const hash = location.hash.slice(1);
+      const query = new URLSearchParams(location.search).get("type");
+      const selected = filters.find(({ dataset }) => dataset.filter === hash)
+        ?? filters.find(({ dataset }) => dataset.filter === query)
+        ?? filters[0];
+      applyFilter(selected);
+    }
+
+    for (const filter of filters) {
+      filter.addEventListener("click", (event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const url = new URL(location.href);
+        url.hash = "";
+        if (filter.dataset.filter === "all") url.searchParams.delete("type");
+        else url.searchParams.set("type", filter.dataset.filter ?? "");
+        history.replaceState(null, "", url);
+        applyFilter(filter);
+      });
+    }
+    syncFilter();
+    window.addEventListener("hashchange", syncFilter);
+    window.addEventListener("popstate", syncFilter);
+
+    if (previewToggle) {
+      const root = document.documentElement;
+      const setPreviewTheme = (theme: string | undefined) => {
+        const dark = theme === "dark";
+        catalog.dataset.previewTheme = dark ? "dark" : "light";
+        previewToggle.textContent = dark ? "预览 · 深色" : "预览 · 浅色";
+        previewToggle.setAttribute("aria-label", dark ? "切换为浅色预览" : "切换为深色预览");
+      };
+      const syncPreview = () => setPreviewTheme(root.dataset.theme);
+      previewToggle.addEventListener("click", () => {
+        setPreviewTheme(catalog.dataset.previewTheme === "dark" ? "light" : "dark");
+      });
+      syncPreview();
+      new MutationObserver(syncPreview).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+      previewToggle.hidden = false;
+    }
+  }
+</script>
+
+<style>
+  .catalog-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(270px, .55fr);
+    align-items: end;
+    gap: 4.5rem;
+    padding-block: calc(var(--nav-h) + 6rem) 5rem;
+  }
+
+  h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2.75rem, 6vw, 5rem);
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+
+  .hero-copy {
+    max-width: 640px;
+    margin-top: 1.5rem;
+    color: var(--text-2);
+    font-size: 1rem;
+    line-height: 1.72;
+    text-wrap: pretty;
+  }
+
+  .proof-board {
+    border: 1px solid var(--line-hi);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .proof-row {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    align-items: center;
+    gap: 1rem;
+    min-height: 64px;
+    padding: .9rem 1.25rem;
+  }
+
+  .proof-row + .proof-row { border-top: 1px solid var(--line); }
+  .proof-row dt { color: var(--text-3); font: .75rem/1.5 var(--font-mono); letter-spacing: .06em; }
+  .proof-row dd { grid-area: 1 / 1; font: italic 400 1.625rem/1 var(--font-number); color: var(--text); }
+
+  .controls { padding-block: 1.25rem; border-block: 1px solid var(--line); }
+  .controls-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
+  .filter-group { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
+  .filter-button {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    min-height: 44px;
+    padding: 0 .85rem;
+    border: 1px solid var(--line-hi);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-family: var(--font-body);
+    font-size: .8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .18s var(--ease-out), border-color .18s var(--ease-out), background .18s var(--ease-out);
+  }
+  .filter-button:hover { color: var(--text); border-color: var(--line-strong); }
+  .filter-button[aria-current] { color: var(--btn-fg); background: var(--btn-bg); border-color: var(--line-strong); }
+
+  .gallery-section { padding-block: 4rem 6rem; }
+  .gallery-section, .showcase-card { scroll-margin-top: 1.25rem; }
+  .section-intro { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 1.75rem; }
+  .section-intro h2 { font: 600 clamp(2rem, 4vw, 3.25rem)/1.2 var(--font-heading); letter-spacing: -.012em; }
+  .section-intro p { max-width: 440px; color: var(--text-2); font-size: 1rem; line-height: 1.7; text-align: end; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+
+  /* Resolve the accent on the preview itself, whose theme can differ from the card's. */
+  [data-type="pointer"], [data-type="pointer"] .preview-shell { --card-accent: var(--family-pointer); }
+  [data-type="trigger"], [data-type="trigger"] .preview-shell { --card-accent: var(--family-trigger); }
+  [data-type="driven"], [data-type="driven"] .preview-shell { --card-accent: var(--family-driven); }
+  [data-type="transition"], [data-type="transition"] .preview-shell { --card-accent: var(--family-transition); }
+  .showcase-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--line-hi);
+    border-radius: 20px;
+    background: var(--surface);
+    transition: transform .6s var(--ease-out), border-color .3s var(--ease-out), box-shadow .3s var(--ease-out);
+  }
+  .showcase-card:is(:hover, :focus-within) {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-accent) 25%, transparent),
+      0 40px 100px -40px color-mix(in srgb, var(--card-accent) 55%, transparent);
+  }
+  .showcase-card.is-featured { grid-column: 1 / -1; }
+
+  .card-header {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 84px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-index {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    border-inline-end: 1px solid var(--line);
+    color: var(--card-accent);
+    font: .75rem/1 var(--font-mono);
+    letter-spacing: .08em;
+  }
+  .card-title-wrap { min-width: 0; padding: 1rem 1.375rem; }
+  .card-kicker { margin-bottom: .35rem; color: var(--text-3); font: 600 .6875rem/1.35 var(--font-mono); letter-spacing: .1em; }
+  .card-title { font: 500 1.5rem/1.2 var(--font-title); letter-spacing: -.02em; }
+  .card-title a { text-decoration: none; }
+  .card-title a:hover { color: var(--accent-text); }
+  .card-mode {
+    margin-inline-end: 1.375rem;
+    padding: .4rem .65rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(var(--fg-rgb), .04);
+    color: var(--text-2);
+    font: .625rem/1.2 var(--font-mono);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .preview-shell {
+    --notation-ground: var(--plate);
+    --notation-cut: var(--plate);
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 420px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--card-accent) 10%, transparent), transparent 70%), var(--plate);
+    color: var(--card-accent);
+  }
+  .preview-shell::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 30%;
+    background: linear-gradient(to top, var(--bg), transparent);
+    pointer-events: none;
+  }
+  .is-featured .preview-shell { height: 560px; }
+  .preview-shell :global(svg) { display: block; width: 86%; max-width: 51rem; height: auto; transition: transform 1.2s var(--ease-out); }
+  .showcase-card:is(:hover, :focus-within) .preview-shell :global(svg) { transform: scale(1.025); }
+  .preview-flag {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .42rem .7rem;
+    border: 1px solid color-mix(in srgb, var(--card-accent) 35%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    color: color-mix(in srgb, var(--card-accent) 60%, var(--text));
+    font: 600 .625rem/1.3 var(--font-mono);
+    letter-spacing: .1em;
+  }
+  .preview-flag::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .card-body { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding: 1.6rem 1.75rem 1.75rem; }
+  .card-description { min-height: 1.7em; margin-bottom: 1.25rem; color: var(--text-2); font-size: 1rem; line-height: 1.7; text-wrap: pretty; }
+  .receipt {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(var(--fg-rgb), .02);
+  }
+  .receipt dt { display: grid; align-content: center; padding: .7rem .8rem; border-inline-end: 1px solid var(--line); color: var(--text-3); font: .6875rem/1.4 var(--font-mono); }
+  .receipt dd { padding: .7rem .8rem; color: var(--text-2); font-size: 1rem; line-height: 1.7; }
+  .card-open { margin-top: auto; padding-inline: .9rem; font-size: .8125rem; }
+  .card-open :global(svg) { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+
+  @media (max-width: 960px) {
+    .catalog-hero { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; padding-block: calc(var(--nav-h) + 3.5rem) 3.5rem; }
+    .proof-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .proof-row { grid-template-columns: auto 1fr; min-height: 56px; gap: .6rem; padding-inline: 1rem; }
+    .proof-row + .proof-row { border-top: 0; border-inline-start: 1px solid var(--line); }
+    .gallery-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .catalog-hero { gap: 1.75rem; padding-block: calc(var(--nav-h) + 3rem) 3rem; }
+    h1 { font-size: clamp(2.25rem, 11vw, 3rem); }
+    .proof-row { grid-template-columns: 1fr; gap: .45rem; padding: .8rem; }
+    .proof-row dt { font-size: .6875rem; }
+    .controls-inner, .section-intro { align-items: flex-start; flex-direction: column; gap: 1rem; }
+    .filter-group { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-block: 3px; scrollbar-width: none; }
+    .filter-button { padding-inline: .7rem; }
+    .gallery-section { padding-block: 3rem 4rem; }
+    .section-intro p { text-align: start; }
+    .card-header { grid-template-columns: 48px minmax(0, 1fr); min-height: 76px; }
+    .card-title-wrap { padding: .9rem 1rem; }
+    .card-title { font-size: 1.125rem; }
+    .card-mode { display: none; }
+    .preview-shell, .is-featured .preview-shell { height: 320px; }
+    .card-body { padding: 1.125rem 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .showcase-card, .preview-shell :global(svg) { transition: none; }
+    .showcase-card:is(:hover, :focus-within), .showcase-card:is(:hover, :focus-within) .preview-shell :global(svg) { transform: none; }
+  }
+</style>

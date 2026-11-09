@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
+  <title id="title">FormTempo · 翻盖图鉴</title>
+  <path d="M30 17h4v-4l6-4q3-1.8 3 1.6v23.2q0 2.2-1.7 3.5L34 43v-8h-4v-4h4V21h-4z" fill="#963324"/>
+  <path d="M10 5h17a4 4 0 0 1 4 4v26l-6.5 7H10a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5z" fill="#b8412c"/>
+  <rect x="9.5" y="10" width="17" height="17" rx="2.6" fill="#19222d"/>
+  <path d="M12 19.5v-6h7.2v3h-4.2v3z" fill="#9dc5e4"/>
+  <rect x="16.3" y="17.8" width="7.2" height="6" rx="1.1" fill="#e8f3fa"/>
+  <path d="M11.5 33.5h12.2" stroke="#fbfaf7" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="16.3" cy="33.5" r="3.15" fill="#fbfaf7"/>
+</svg>

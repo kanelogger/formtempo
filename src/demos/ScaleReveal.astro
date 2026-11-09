@@ -1,0 +1,14 @@
+---
+import { scaleRevealMarkup } from './scale-reveal-markup';
+import './scale-reveal.css';
+---
+
+<Fragment set:html={scaleRevealMarkup} />
+
+<script>
+  import { bindScaleReveal } from './scale-reveal-interaction.js';
+
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-scale-reveal]')) {
+    bindScaleReveal(demo);
+  }
+</script>

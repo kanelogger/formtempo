@@ -1,0 +1,165 @@
+---
+import Arrow from "./Arrow.astro";
+import { routes, withBase } from "../effects";
+import "../demos/soft-mask-reveal.css";
+
+const artwork = "#driven-clip-reveal-home-clip";
+const progress = 70;
+---
+
+<section id="output" aria-labelledby="output-title">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="section-label"><span>05</span><span>分界对比</span></p>
+      <h2 class="section-heading" id="output-title">硬边与软边，<em>差在哪？</em></h2>
+      <p class="section-body" id="mask-split-help">左右拖动分界线，比较同一幅图怎样在左侧直接截断，在右侧逐渐淡出。</p>
+    </header>
+
+    <figure class="split-study">
+      <div class="split-labels">
+        <span>硬边裁剪</span>
+        <span>软边遮罩</span>
+      </div>
+      <div class="split-stage soft-mask-reveal" data-mask-split style={`--soft-mask-progress: ${progress / 100}`}>
+        <div class="split-layer" aria-hidden="true">
+          <div class="soft-mask-reveal__art soft-mask-reveal__art--feather">
+            <div class="soft-mask-reveal__vertical">
+              <svg viewBox="0 0 760 430" focusable="false"><use href={artwork} /></svg>
+            </div>
+          </div>
+        </div>
+        <div class="split-layer split-layer--hard" aria-hidden="true">
+          <div class="soft-mask-reveal__art soft-mask-reveal__art--hard">
+            <svg viewBox="0 0 760 430" focusable="false"><use href={artwork} /></svg>
+          </div>
+        </div>
+        <input class="split-range" type="range" min="0" max="100" value="50" disabled
+          aria-label="硬边与软边的分界线" aria-describedby="mask-split-help" />
+        <div class="split-divider" aria-hidden="true"></div>
+        <div class="split-handle" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+            <path d="m9 8-4 4 4 4m6-8 4 4-4 4" />
+          </svg>
+        </div>
+      </div>
+      <figcaption class="split-caption">
+        <span>两种效果都停在 {progress}% 展开进度</span>
+        <a href={withBase(routes.effect("soft-mask-reveal"))}>查看滚动软边遮罩 <Arrow /></a>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  const stage = document.querySelector<HTMLElement>("[data-mask-split]");
+  const range = stage?.querySelector<HTMLInputElement>("input");
+  if (stage && range) {
+    const update = () => {
+      stage.style.setProperty("--split", `${range.value}%`);
+      range.setAttribute("aria-valuetext", `分界线位于画面左起 ${range.value}%`);
+    };
+    range.addEventListener("input", update);
+    update();
+    range.disabled = false;
+  }
+</script>
+
+<style>
+  .split-study {
+    border: 1px solid var(--line-hi);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .split-labels,
+  .split-caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0 1rem;
+    padding-inline: clamp(.85rem, 2.5vw, 1.5rem);
+    font-size: .875rem;
+  }
+
+  .split-labels { padding-block: .85rem; font-weight: 600; }
+
+  .split-stage {
+    --split: 50%;
+    --handle-radius: 22px;
+    position: relative;
+    aspect-ratio: 760 / 430;
+    background: var(--surface-2);
+  }
+
+  .split-layer {
+    position: absolute;
+    inset: 0;
+    background: var(--surface-2);
+    pointer-events: none;
+  }
+
+  .split-layer--hard { clip-path: inset(0 calc(100% - var(--split)) 0 0); }
+
+  .split-range {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    appearance: none;
+    cursor: ew-resize;
+    touch-action: pan-y;
+  }
+
+  .split-range::-webkit-slider-thumb { appearance: none; width: 1px; height: 44px; }
+  .split-range::-moz-range-thumb { width: 1px; height: 44px; }
+  .split-stage:has(.split-range:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .split-divider {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: clamp(0px, calc(var(--split) - 1px), calc(100% - 2px));
+    width: 2px;
+    background: var(--accent);
+    pointer-events: none;
+  }
+
+  .split-handle {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: clamp(var(--handle-radius), var(--split), calc(100% - var(--handle-radius)));
+    display: grid;
+    place-items: center;
+    width: calc(2 * var(--handle-radius));
+    aspect-ratio: 1;
+    border: 2px solid var(--surface);
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .split-handle svg { width: 24px; height: 24px; }
+  .split-range:disabled ~ .split-handle { display: none; }
+
+  .split-caption { padding-block: .35rem; color: var(--text-2); }
+  .split-caption a {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    min-height: 44px;
+    color: var(--accent-text);
+    font-weight: 600;
+    text-decoration: none;
+    text-underline-offset: .22em;
+  }
+  .split-caption a:hover { text-decoration: underline; }
+  .split-caption a :global(svg) { width: 1rem; height: 1rem; flex: none; }
+
+  @media (max-width: 480px) {
+    .split-caption { padding-block-start: .85rem; }
+  }
+</style>

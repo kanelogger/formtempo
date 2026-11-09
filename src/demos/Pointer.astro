@@ -1,0 +1,190 @@
+---
+import { orbitArtwork } from './pointer-art';
+
+interface Props { variant: string }
+
+const { variant } = Astro.props;
+const directionAware = variant === 'direction-aware';
+const directions = [
+  { name: '上', side: 'top' },
+  { name: '右', side: 'right' },
+  { name: '下', side: 'bottom' },
+  { name: '左', side: 'left' },
+] as const;
+---
+
+<section class="pointer-demo" data-pointer-variant={variant} aria-label="指针交互演示">
+  <div class="pointer-frame" aria-hidden="true">
+    <div class="axis axis-top">上</div>
+    <div class="axis axis-left">左</div>
+    <div class="pointer-card" data-pointer-card data-pointer-state="closed">
+      <div class="specimen specimen-rest">
+        <div class="specimen-title"><strong>轨道研究</strong><small>ORBIT STUDY</small></div>
+        <Fragment set:html={orbitArtwork()} />
+        <div class="specimen-corner">A–01</div>
+      </div>
+      <div class="specimen specimen-open" data-pointer-panel>
+        <div class="specimen-title"><strong>轨道研究</strong><small>ORBIT STUDY</small></div>
+        <Fragment set:html={orbitArtwork(true)} />
+        <div class="specimen-corner">A–02</div>
+      </div>
+    </div>
+    <div class="axis axis-right">右</div>
+    <div class="axis axis-bottom">下</div>
+  </div>
+
+  <div class="pointer-instructions">
+    <p>{directionAware ? '从不同边缘移入或移出。触屏或触控笔可点按卡片任一侧。' : '将指针移入和移出卡片，或使用触屏、触控笔点按切换。'}</p>
+    <p class="pointer-status" role="status" data-pointer-status>等待操作</p>
+  </div>
+
+  <div class="pointer-controls" data-pointer-controls hidden>
+    {directionAware ? (
+      <>
+        <fieldset>
+          <legend>模拟进入</legend>
+          <div class="direction-options">
+            {directions.map(({ name, side }) => (
+              <button type="button" data-pointer-action="enter" data-side={side} aria-label={`从${name}侧进入`}>{name}</button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>模拟离开</legend>
+          <div class="direction-options">
+            {directions.map(({ name, side }) => (
+              <button type="button" data-pointer-action="leave" data-side={side} aria-label={`向${name}侧离开`}>{name}</button>
+            ))}
+          </div>
+        </fieldset>
+      </>
+    ) : (
+      <div class="simple-options" role="group" aria-label="模拟指针事件">
+        <button type="button" data-pointer-action="enter">进入</button>
+        <button type="button" data-pointer-action="leave">离开</button>
+      </div>
+    )}
+  </div>
+
+  <noscript>
+    <div class="pointer-static">
+      <div><span class="state-swatch"></span><span>起始 · 原画面</span></div>
+      <div><span class="state-swatch state-swatch-open"></span><span>终止 · 揭示层完全出现</span></div>
+    </div>
+  </noscript>
+</section>
+
+<script>
+  import { bindPointerStage } from './pointer-interaction.js';
+
+  document.querySelectorAll<HTMLElement>('[data-pointer-variant]').forEach((stage) => bindPointerStage(stage));
+</script>
+
+<style>
+  .pointer-demo {
+    --pointer-accent: var(--family-pointer);
+    --pointer-rest: color-mix(in srgb, var(--surface-2) 88%, var(--pointer-accent));
+    color: var(--text);
+  }
+  .pointer-frame {
+    display: grid;
+    grid-template: 1.7rem auto 1.7rem / 1.8rem minmax(0, 1fr) 1.8rem;
+    max-inline-size: 54rem;
+    margin-inline: auto;
+    padding: clamp(.45rem, 1.8vw, 1.35rem);
+    border-radius: 14px;
+    background: var(--surface-2);
+  }
+  .pointer-card {
+    position: relative;
+    grid-area: 2 / 2;
+    isolation: isolate;
+    overflow: hidden;
+    aspect-ratio: 2 / 1;
+    border-radius: 12px;
+    background: var(--pointer-rest);
+    touch-action: auto;
+  }
+  .axis {
+    position: relative;
+    display: grid;
+    place-items: center;
+    color: var(--text-2);
+    font-size: .75rem;
+  }
+  .axis-top { grid-area: 1 / 2; }
+  .axis-right { grid-area: 2 / 3; }
+  .axis-bottom { grid-area: 3 / 2; }
+  .axis-left { grid-area: 2 / 1; }
+  .axis::before, .axis::after {
+    position: absolute;
+    content: '';
+    background: var(--line-strong);
+  }
+  .axis-top::before, .axis-bottom::before { inset: 50% calc(50% + 1rem) auto 0; block-size: 1px; }
+  .axis-top::after, .axis-bottom::after { inset: 50% 0 auto calc(50% + 1rem); block-size: 1px; }
+  .axis-left::before, .axis-right::before { inset: 0 auto calc(50% + 1rem) 50%; inline-size: 1px; }
+  .axis-left::after, .axis-right::after { inset: calc(50% + 1rem) auto 0 50%; inline-size: 1px; }
+  .specimen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    padding: clamp(.9rem, 3.2vw, 2rem);
+    pointer-events: none;
+  }
+  .specimen :global(svg) { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
+  .specimen-rest { z-index: 0; background: var(--pointer-rest); color: var(--text); }
+  .specimen-open { z-index: 1; background: var(--pointer-accent); color: var(--on-accent); transform: translate(-100%, 0%); }
+  .specimen-title, .specimen-corner { z-index: 1; }
+  .specimen-title { display: grid; gap: .25rem; }
+  .specimen-title strong { font-size: clamp(1rem, 3vw, 1.65rem); letter-spacing: -.025em; }
+  .specimen-title small, .specimen-corner { font-size: clamp(.6rem, 1.35vw, .8rem); letter-spacing: .05em; }
+  .pointer-instructions, .pointer-controls, .pointer-static { max-inline-size: 54rem; margin-inline: auto; }
+  .pointer-instructions {
+    display: flex;
+    justify-content: space-between;
+    gap: .25rem 1rem;
+    flex-wrap: wrap;
+    margin-block: .65rem .95rem;
+    color: var(--text-2);
+    font-size: .875rem;
+  }
+  .pointer-instructions p { margin: 0; }
+  .pointer-status { color: var(--pointer-accent); min-inline-size: 6em; text-align: end; }
+  .pointer-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem 1.5rem;
+    align-items: end;
+  }
+  .pointer-controls[hidden] { display: none; }
+  .pointer-controls fieldset { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+  .pointer-controls legend { font-size: .8rem; color: var(--text-2); margin-block-end: .35rem; padding: 0; }
+  .direction-options, .simple-options { display: flex; gap: .35rem; }
+  .pointer-controls button {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 2.75rem;
+    min-block-size: 2.75rem;
+    padding: .35rem .65rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: .875rem;
+    cursor: pointer;
+  }
+  .pointer-controls button:hover { border-color: var(--pointer-accent); background: var(--pointer-rest); color: var(--text); }
+  .pointer-controls button:focus-visible { outline: 2px solid var(--pointer-accent); outline-offset: 3px; }
+  .pointer-static { display: flex; flex-wrap: wrap; gap: .5rem 1.15rem; color: var(--text-2); font-size: .875rem; }
+  .pointer-static > div { display: flex; gap: .4rem; align-items: center; }
+  .state-swatch { inline-size: 1.75rem; block-size: 1rem; background: var(--pointer-rest); border: 1px solid var(--line-strong); }
+  .state-swatch-open { background: var(--pointer-accent); border-color: var(--pointer-accent); }
+  @media (max-width: 42rem) {
+    .pointer-card { aspect-ratio: 1.6 / 1; }
+    .pointer-status { text-align: start; }
+  }
+</style>

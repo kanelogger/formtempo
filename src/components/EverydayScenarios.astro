@@ -1,0 +1,203 @@
+---
+import Arrow from "./Arrow.astro";
+import { effects, groups, routes, withBase } from "../effects";
+
+const scenarioSlugs = {
+  pointer: "direction-aware",
+  trigger: "bidirectional-reveal",
+  driven: "horizontal-gallery",
+  transition: "shared-element",
+};
+const scenarios = groups.map((group) => ({
+  group,
+  effect: effects.find((effect) => effect.slug === scenarioSlugs[group.id])!,
+}));
+---
+
+<section id="everyday" aria-labelledby="scenes-title">
+  <div class="wrap">
+    <header class="section-head">
+      <p class="section-label"><span>02</span><span>使用场景</span></p>
+      <h2 class="section-heading" id="scenes-title">一个动作，<br /><em>放进真实页面。</em></h2>
+      <p class="section-body">从作品卡片到步骤面板，看看这些动效分别能在哪些地方交代反馈、顺序和空间关系。</p>
+    </header>
+
+    <ul class="scene-grid">
+      {scenarios.map(({ group, effect }) => (
+        <li>
+          <a class="scene-card" data-family={group.id} href={withBase(routes.effect(effect.slug))}>
+            <span class="scene-paper">
+              <svg viewBox="0 0 296 156" fill="none" aria-hidden="true" focusable="false">
+                {group.id === "pointer" && (
+                  <>
+                    <rect class="frame" x="58" y="26" width="180" height="104" rx="7" />
+                    <rect class="tint" x="67" y="35" width="162" height="86" rx="3" />
+                    <circle class="sun" cx="105" cy="61" r="12" />
+                    <path class="hill" d="M67 93Q98 63 132 94T184 98v23H67Z" />
+                    <rect class="ink" x="156" y="35" width="73" height="86" rx="3" />
+                    <path class="paper-line" d="M169 69h42m-42 8h28" />
+                    <path class="arrow" d="M265 88h-29m6-5-6 5 6 5" />
+                    <circle class="ink" cx="269" cy="88" r="2.5" />
+                  </>
+                )}
+                {group.id === "trigger" && (
+                  <>
+                    <rect class="frame" x="86" y="24" width="124" height="108" rx="7" />
+                    <path class="guide" d="M68 49h160m-160 58h160" />
+                    <rect class="tint" x="95" y="55" width="106" height="46" rx="4" />
+                    <circle class="sun" cx="119" cy="74" r="8" />
+                    <path class="hill" d="M95 88q17-15 37 0 12-9 24-4v17H95Z" />
+                    <path class="line" d="M156 73h29m-29 8h20M101 36h33m-33 83h41" />
+                    <path class="arrow" d="M55 32v29m-5-6 5 6 5-6m181 69V95m-5 6 5-6 5 6" />
+                  </>
+                )}
+                {group.id === "driven" && (
+                  <>
+                    <rect class="frame" x="48" y="30" width="200" height="90" rx="7" />
+                    <rect class="tint" x="57" y="39" width="55" height="72" rx="4" />
+                    <rect class="tint" x="120" y="39" width="56" height="72" rx="4" />
+                    <rect class="tint" x="184" y="39" width="55" height="72" rx="4" />
+                    <circle class="sun" cx="89" cy="61" r="12" />
+                    <path class="hill" d="M57 89q26-27 55 3v19H57Z" />
+                    <path class="hill" d="M120 111V72q30-25 56 1v38Z" />
+                    <path class="poster-line" d="M128 100V77q20-18 39 0v23" />
+                    <circle class="ink" cx="211.5" cy="73" r="16" />
+                    <ellipse class="poster-line" cx="211.5" cy="73" rx="21" ry="7" transform="rotate(-28 211.5 73)" />
+                    <path class="arrow" d="M89 136h118m-112-5-6 5 6 5m106-10 6 5-6 5" />
+                  </>
+                )}
+                {group.id === "transition" && (
+                  <>
+                    <rect class="frame" x="44" y="39" width="87" height="78" rx="7" />
+                    <rect class="frame" x="162" y="25" width="91" height="106" rx="7" />
+                    <rect class="tint" x="53" y="48" width="30" height="23" rx="3" />
+                    <circle class="sun" cx="73" cy="56" r="4" />
+                    <path class="hill" d="M53 65q15-11 30 0v6H53Z" />
+                    <path class="line" d="M91 55h29m-29 8h21m-38 22h43M53 95h64m-64 8h51" />
+                    <rect class="tint" x="171" y="34" width="73" height="62" rx="3" />
+                    <circle class="sun" cx="219" cy="54" r="11" />
+                    <path class="hill" d="M171 80q36-30 73 0v16h-73Z" />
+                    <path class="line" d="M173 107h55m-55 8h40" />
+                    <path class="arrow" d="M138 77h16m-6-5 6 5-6 5" />
+                  </>
+                )}
+              </svg>
+            </span>
+            <div class="scene-copy">
+              <span class="scene-type">{group.title}</span>
+              <h3>{effect.scene.split("。")[0]}</h3>
+              <span class="scene-caption">{effect.description}</span>
+              <span class="scene-open">{effect.title}<Arrow diagonal /></span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .scene-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:1.25rem;
+    padding:0;
+    margin:0;
+    list-style:none;
+  }
+  .scene-card {
+    --scene-color:var(--family-transition);
+    display:grid;
+    grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+    align-items:center;
+    gap:1.2rem;
+    min-height:100%;
+    padding:.75rem;
+    border:1px solid var(--line-hi);
+    border-radius:16px;
+    background:var(--surface);
+    color:var(--text);
+    text-decoration:none;
+    transition:border-color .2s var(--ease-out),background-color .2s var(--ease-out);
+  }
+  .scene-card[data-family="pointer"] { --scene-color:var(--family-pointer); }
+  .scene-card[data-family="trigger"] { --scene-color:var(--family-trigger); }
+  .scene-card[data-family="driven"] { --scene-color:var(--family-driven); }
+  .scene-card:is(:hover,:focus-visible) {
+    border-color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 3%,var(--surface));
+  }
+  .scene-paper {
+    display:grid;
+    place-items:center;
+    min-width:0;
+    min-height:9rem;
+    border-radius:10px;
+    background:color-mix(in srgb,var(--scene-color) 10%,var(--bg-2));
+  }
+  .scene-paper svg {
+    display:block;
+    width:min(100%,19rem);
+    height:auto;
+    color:var(--scene-color);
+  }
+  .frame { fill:var(--surface); stroke:currentColor; stroke-opacity:.35; }
+  .tint { fill:color-mix(in srgb,var(--scene-color) 18%,var(--surface)); }
+  .sun { fill:color-mix(in srgb,var(--family-trigger) 56%,var(--surface)); }
+  .hill { fill:color-mix(in srgb,var(--scene-color) 55%,var(--surface)); }
+  .ink { fill:currentColor; }
+  .line,.guide,.arrow,.paper-line,.poster-line {
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .line { stroke-opacity:.42; }
+  .guide { stroke-dasharray:2 4; stroke-opacity:.65; }
+  .paper-line,.poster-line { stroke:var(--surface); }
+
+  .scene-copy { display:grid; min-width:0; gap:.42rem; padding:.65rem .55rem .65rem 0; }
+  .scene-type { color:var(--text-3); font-size:.75rem; line-height:1.4; }
+  .scene-copy h3 {
+    margin:0;
+    font-family:var(--font-grot);
+    font-size:clamp(1.05rem,1.6vw,1.38rem);
+    font-weight:600;
+    line-height:1.3;
+    letter-spacing:-.02em;
+    text-wrap:balance;
+  }
+  .scene-caption { color:var(--text-2); font-size:.825rem; line-height:1.6; text-wrap:pretty; }
+  .scene-open {
+    display:flex;
+    align-items:center;
+    gap:.4rem;
+    width:fit-content;
+    margin-top:.3rem;
+    color:var(--accent-text);
+    font-size:.78rem;
+    font-weight:600;
+  }
+  .scene-open :global(svg) { width:14px; height:14px; transition:transform .25s var(--ease-out); }
+  .scene-card:is(:hover,:focus-visible) .scene-open :global(svg) { transform:translate(2px,-2px); }
+
+  @media (max-width:850px) {
+    .scene-card { grid-template-columns:minmax(0,1fr); gap:.3rem; }
+    .scene-copy { padding:.75rem .45rem .6rem; }
+  }
+  @media (max-width:520px) {
+    .scene-grid { grid-template-columns:minmax(0,1fr); gap:1rem; }
+    .scene-card { grid-template-columns:minmax(0,.92fr) minmax(0,1fr); gap:.7rem; }
+    .scene-paper { min-height:8.25rem; }
+    .scene-copy { padding:.4rem .2rem .4rem 0; }
+  }
+  @media (max-width:360px) {
+    .scene-card { grid-template-columns:minmax(0,1fr); gap:.25rem; }
+    .scene-copy { padding:.65rem .35rem .4rem; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .scene-card,.scene-open :global(svg) { transition:none; }
+    .scene-card:is(:hover,:focus-visible) .scene-open :global(svg) { transform:none; }
+  }
+</style>

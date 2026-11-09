@@ -1,0 +1,20 @@
+---
+import { scrollProgressMarkup } from './scroll-progress-markup';
+import { softMaskRevealStage } from './soft-mask-reveal-markup';
+import './scroll-progress.css';
+import './soft-mask-reveal.css';
+
+const markup = scrollProgressMarkup({ id: 'soft-mask-reveal', stage: softMaskRevealStage, initial: 50 });
+---
+
+<Fragment set:html={markup} />
+
+<script>
+  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  import { createSoftMaskRenderer } from './soft-mask-reveal-interaction.js';
+
+  for (const stage of document.querySelectorAll('[data-soft-mask-reveal]')) {
+    const root = stage.closest<HTMLElement>('[data-scroll-progress]');
+    if (root) bindScrollProgress(root, createSoftMaskRenderer(root));
+  }
+</script>

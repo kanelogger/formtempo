@@ -1,0 +1,113 @@
+.section-snap {
+  --snap-height: clamp(11.5rem, 42vw, 23rem);
+  max-inline-size: 54rem;
+  margin-inline: auto;
+  color: var(--text);
+}
+
+.section-snap-hint {
+  margin-block: 0 .75rem;
+  color: var(--text-2);
+  font-size: .9375rem;
+  line-height: 1.55;
+}
+
+.section-snap-viewport {
+  position: relative;
+  block-size: var(--snap-height);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) var(--surface-2);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.section-snap-viewport:focus-visible,
+.section-snap-buttons button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.section-snap-chapters {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section-snap-chapter {
+  position: relative;
+  block-size: var(--snap-height);
+  scroll-snap-align: start;
+}
+
+.section-snap-chapter svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.section-snap-label {
+  position: absolute;
+  inset-inline-start: .75rem;
+  inset-block-end: .75rem;
+  padding: .35rem .65rem;
+  border: 1px solid var(--line-hi);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: .8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.section-snap-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem .75rem;
+  margin-block-start: .75rem;
+  padding: .6rem .75rem;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.section-snap-controls[hidden] { display: none; }
+
+.section-snap-status {
+  margin: 0;
+  color: var(--text);
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-snap-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.section-snap-buttons button {
+  min-block-size: 44px;
+  padding-inline: .75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .875rem;
+  cursor: pointer;
+}
+
+.section-snap-buttons button:not([aria-disabled="true"]):hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.section-snap-buttons button[aria-disabled="true"] {
+  border-color: var(--line-hi);
+  background: transparent;
+  color: var(--text-3);
+  cursor: default;
+}

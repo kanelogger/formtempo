@@ -1,0 +1,9 @@
+---
+import { routes, withBase } from "../effects";
+
+const { navigation = false } = Astro.props;
+---
+<a class:list={["brand-lockup", { "nav-logo": navigation }]} href={withBase(routes.home)} aria-label="FormTempo 首页">
+  <img src={withBase("mark.svg")} width="30" height="30" alt="" />
+  <span>FormTempo</span>
+</a>

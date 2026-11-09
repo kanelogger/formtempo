@@ -1,0 +1,460 @@
+---
+import { eventLabels, positions, positionLabels, triggerCases, type TriggerVariant } from './trigger-state';
+
+interface Props { variant: string }
+const { variant } = Astro.props;
+const current = variant as TriggerVariant;
+const title = triggerCases[current].name;
+const actions = { play: '播放', none: '—', reset: '复位' } as const;
+---
+
+<formtempo-trigger data-trigger-variant={variant}>
+  <div class="trigger-track" data-trigger-track>
+    <span id="trigger-before" class="trigger-origin" data-trigger-origin tabindex="-1">触发起点</span>
+    <i class="trigger-anchor trigger-anchor--start" data-trigger-start aria-hidden="true"></i>
+    <i id="trigger-inside" class="trigger-anchor trigger-anchor--inside" aria-hidden="true"></i>
+    <i class="trigger-anchor trigger-anchor--end" data-trigger-end aria-hidden="true"></i>
+    <i id="trigger-after" class="trigger-anchor trigger-anchor--after" aria-hidden="true"></i>
+
+    <section class="trigger-stage" aria-label={`${title}演示`}>
+      <div class="trigger-stage-header">
+        <h2>越过边界，触发变化</h2>
+        <span class="trigger-state-chip" data-trigger-display>已揭示</span>
+      </div>
+      <div class="trigger-composition">
+        <svg class="trigger-art" viewBox="0 0 630 200" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="trigger-field"><rect x="153" y="26" width="324" height="148" rx="2" /></clipPath>
+          </defs>
+          <g fill="none" stroke="var(--line-strong)" stroke-width="1" vector-effect="non-scaling-stroke">
+            <path d="M3 100h624M315 4v192" stroke-dasharray="3 5"/>
+            <rect x="153" y="26" width="324" height="148" rx="2" stroke-dasharray="4 5"/>
+            <path d="M142 26h-9v9m355-9h9v9m-355 139h-9v-9m355 9h9v-9"/>
+            <circle cx="82" cy="100" r="21"/>
+            <circle cx="548" cy="100" r="21"/>
+          </g>
+          <g clip-path="url(#trigger-field)">
+            <g class="trigger-art-layer">
+              <rect x="153" y="26" width="324" height="148" fill="#876221"/>
+              <path d="M153 174 294 26h65L217 174zM294 174 435 26h42L336 174z" fill="#f7c98b"/>
+              <path d="M359 26h76L294 174h-77z" fill="#e5a38a"/>
+              <path d="M477 78v96h-92z" fill="#39688b"/>
+              <circle cx="315" cy="100" r="39" fill="#fffdf8" />
+              <path d="M315 74v52m-26-26h52" fill="none" stroke="#876221" stroke-width="1.5" />
+              <rect x="159" y="32" width="312" height="136" fill="none" stroke="#fffdf8" stroke-opacity=".45"/>
+            </g>
+          </g>
+        </svg>
+
+        <ol class="trigger-locations" aria-label="页面滚动位置">
+          {positions.map((position) => <li data-trigger-location={position}>{positionLabels[position]}</li>)}
+        </ol>
+      </div>
+      <div class="trigger-interaction" data-trigger-controls hidden>
+        <div class="trigger-buttons">
+          {eventLabels.map((label, index) => <button type="button" data-trigger-event={index}>{label}</button>)}
+        </div>
+        <div class="trigger-foot">
+          <span aria-live="polite" data-trigger-status>滚动页面，或逐项试按四个事件。</span>
+          <button type="button" data-trigger-reset>回到触发起点</button>
+        </div>
+      </div>
+      <div class="trigger-fallback" data-trigger-fallback>
+        <span><i></i>起始状态</span>
+        <span><i></i>揭示状态</span>
+      </div>
+    </section>
+  </div>
+  <div class="trigger-comparison">
+    <h3>四个边界事件</h3>
+    <p>「—」表示保留当前状态。加载在区间内时三个案例均已揭示。加载在区间后时，仅双向揭示回到初始状态。</p>
+    <table>
+      <thead><tr><th scope="col">行为</th>{eventLabels.map((label) => <th scope="col">{label}</th>)}</tr></thead>
+      <tbody>
+        {Object.entries(triggerCases).map(([slug, item]) => (
+          <tr class:list={{ 'trigger-current-case': current === slug }}>
+            <th scope="row" aria-current={current === slug ? 'true' : undefined}>{item.name}</th>
+            {item.actions.map((action) => <td>{actions[action]}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</formtempo-trigger>
+
+<script>
+  import {
+    crossedBoundaries,
+    eventLabels,
+    regionAt,
+    revealAtLoad,
+    triggerCases,
+    type TriggerPosition,
+    type TriggerVariant,
+  } from './trigger-state';
+
+  class FormtempoTrigger extends HTMLElement {
+    private teardown?: () => void;
+
+    connectedCallback() {
+      if (this.teardown) return;
+
+      const variant = this.dataset.triggerVariant as TriggerVariant;
+      const actions = triggerCases[variant]?.actions;
+      const startAnchor = this.querySelector<HTMLElement>('[data-trigger-start]');
+      const endAnchor = this.querySelector<HTMLElement>('[data-trigger-end]');
+      const origin = this.querySelector<HTMLElement>('[data-trigger-origin]');
+      const controls = this.querySelector<HTMLElement>('[data-trigger-controls]');
+      const status = this.querySelector<HTMLElement>('[data-trigger-status]');
+      const display = this.querySelector<HTMLElement>('[data-trigger-display]');
+      const fallback = this.querySelector<HTMLElement>('[data-trigger-fallback]');
+      if (!actions || !startAnchor || !endAnchor || !origin || !controls || !status || !display || !fallback) return;
+
+      const listeners = new AbortController();
+      const { signal } = listeners;
+      let start = 0;
+      let end = 0;
+      let previous: TriggerPosition | undefined;
+      let shown = false;
+      let played = false;
+      let resetting = false;
+      // The simulated crossings must not consume a real one-shot trigger.
+      let guideSnapshot: { shown: boolean; played: boolean; scroll: number } | undefined;
+      let motionFrame = 0;
+      let scrollFrame = 0;
+      let syncFrame = 0;
+
+      const scrollTopFor = (target: HTMLElement) => window.scrollY + target.getBoundingClientRect().top;
+      const measure = () => {
+        start = scrollTopFor(startAnchor);
+        end = scrollTopFor(endAnchor);
+      };
+
+      const update = (event = '', position = previous) => {
+        this.dataset.revealed = String(shown);
+        this.dataset.position = position;
+        const text = shown ? '已揭示' : '初始状态';
+        display.textContent = text;
+        if (event) status.textContent = `${event} · ${text}`;
+      };
+
+      const apply = (index: number) => {
+        switch (actions[index]) {
+          case 'play':
+            if (variant === 'enter-once' && played) return;
+            shown = true;
+            played = true;
+            break;
+          case 'reset':
+            shown = false;
+            break;
+        }
+      };
+
+      const showWithoutTransition = (sync: () => void) => {
+        this.dataset.syncing = '';
+        sync();
+        cancelAnimationFrame(motionFrame);
+        motionFrame = requestAnimationFrame(() => {
+          delete this.dataset.syncing;
+        });
+      };
+
+      const seed = () => {
+        if (resetting) return;
+        guideSnapshot = undefined;
+        measure();
+        previous = regionAt(window.scrollY, start, end);
+        shown = revealAtLoad(variant, previous);
+        played = variant === 'enter-once' && shown;
+        showWithoutTransition(() => update());
+      };
+
+      const scheduleSeed = () => {
+        cancelAnimationFrame(syncFrame);
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = 0;
+        syncFrame = requestAnimationFrame(seed);
+      };
+
+      const processScroll = () => {
+        if (scrollFrame || resetting) return;
+        scrollFrame = requestAnimationFrame(() => {
+          scrollFrame = 0;
+          const next = regionAt(window.scrollY, start, end);
+          const resume = guideSnapshot && guideSnapshot.scroll !== window.scrollY;
+          if (resume && guideSnapshot) {
+            ({ shown, played } = guideSnapshot);
+            guideSnapshot = undefined;
+          }
+          if (!previous || previous === next) {
+            if (resume) update('继续页面滚动');
+            return;
+          }
+          const events = crossedBoundaries(previous, next);
+          events.forEach(apply);
+          previous = next;
+          update(events.map((index) => eventLabels[index]).join(' → '));
+        });
+      };
+
+      this.dataset.ready = '';
+      controls.hidden = false;
+      fallback.hidden = true;
+      seed();
+      window.addEventListener('scroll', processScroll, { passive: true, signal });
+      window.addEventListener('pageshow', scheduleSeed, { signal });
+      window.addEventListener('hashchange', scheduleSeed, { signal });
+      window.addEventListener('resize', measure, { signal });
+      const observer = new ResizeObserver(measure);
+      observer.observe(document.body);
+
+      this.addEventListener('formtempo:guide-reset', () => {
+        guideSnapshot ??= { shown, played, scroll: window.scrollY };
+        guideSnapshot.scroll = window.scrollY;
+        played = false;
+        shown = false;
+        showWithoutTransition(() => update('导览起点', 'before'));
+      }, { signal });
+
+      controls.addEventListener('click', (event) => {
+        const button = (event.target as Element).closest<HTMLButtonElement>('button');
+        if (!button || resetting) return;
+        if (button.dataset.triggerEvent !== undefined) {
+          const index = Number(button.dataset.triggerEvent);
+          apply(index);
+          const simulated = (['inside', 'after', 'inside', 'before'] as const)[index];
+          update(eventLabels[index], simulated);
+        } else if (button.hasAttribute('data-trigger-reset')) {
+          guideSnapshot = undefined;
+          resetting = true;
+          cancelAnimationFrame(scrollFrame);
+          cancelAnimationFrame(syncFrame);
+          scrollFrame = 0;
+          measure();
+          const scrollPadding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+          const target = Math.max(0, Math.min(Math.floor(scrollTopFor(origin) - scrollPadding), Math.floor(start) - 1));
+          window.scrollTo({ top: target, behavior: 'instant' });
+          const finishReset = () => {
+            measure();
+            previous = regionAt(window.scrollY, start, end);
+            if (previous === 'before') {
+              played = false;
+              shown = false;
+              showWithoutTransition(() => update('已回到触发起点'));
+              origin.focus({ preventScroll: true });
+            } else {
+              update('请滚到触发起点，再次复位');
+            }
+            resetting = false;
+          };
+          if (window.scrollY <= start) finishReset();
+          else syncFrame = requestAnimationFrame(finishReset);
+        }
+      }, { signal });
+
+      this.teardown = () => {
+        listeners.abort();
+        observer.disconnect();
+        cancelAnimationFrame(scrollFrame);
+        cancelAnimationFrame(syncFrame);
+        cancelAnimationFrame(motionFrame);
+      };
+    }
+
+    disconnectedCallback() {
+      this.teardown?.();
+      this.teardown = undefined;
+    }
+  }
+
+  if (!customElements.get('formtempo-trigger')) {
+    customElements.define('formtempo-trigger', FormtempoTrigger);
+  }
+</script>
+
+<style>
+  formtempo-trigger {
+    display: block;
+    color: var(--text);
+    --trigger-ink: var(--text);
+    --trigger-line: var(--line-hi);
+    --trigger-accent: var(--family-trigger);
+    --trigger-paper: var(--surface-2);
+    --trigger-tint: color-mix(in srgb, var(--surface-2) 88%, var(--trigger-accent));
+  }
+
+  .trigger-track { position: relative; }
+  formtempo-trigger[data-ready] .trigger-track::after {
+    content: '';
+    display: block;
+    block-size: 19rem;
+  }
+  formtempo-trigger[data-ready] .trigger-stage {
+    position: sticky;
+    inset-block-start: var(--trigger-sticky-top, 1rem);
+  }
+
+  .trigger-origin,
+  .trigger-anchor {
+    position: absolute;
+    inset-inline-start: .85rem;
+    z-index: 1;
+  }
+  .trigger-origin {
+    inset-block-start: .5rem;
+    border-radius: .25rem;
+    padding: .4rem .65rem;
+    background: var(--trigger-accent);
+    color: var(--on-accent);
+    font-size: .75rem;
+  }
+  .trigger-origin:not(:focus),
+  .trigger-anchor { clip-path: inset(50%); }
+  .trigger-anchor { inline-size: 1px; block-size: 1px; }
+  .trigger-anchor--start { inset-block-start: 4rem; }
+  .trigger-anchor--inside { inset-block-start: 9rem; }
+  .trigger-anchor--end { inset-block-start: 14rem; }
+  .trigger-anchor--after { inset-block-start: 17rem; }
+
+  .trigger-stage {
+    isolation: isolate;
+    border: 1px solid var(--trigger-line);
+    border-radius: .85rem;
+    background: var(--surface);
+  }
+  .trigger-stage-header, .trigger-foot, .trigger-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .85rem clamp(.85rem, 2.2vw, 1.4rem);
+  }
+  .trigger-stage-header h2 { margin: 0; font-size: clamp(1rem, 2vw, 1.35rem); }
+  .trigger-state-chip {
+    flex: none;
+    min-inline-size: 4.9em;
+    border: 1px solid var(--trigger-line);
+    border-radius: 99px;
+    padding: .3em .7em;
+    background: var(--trigger-paper);
+    text-align: center;
+    font-size: .72rem;
+    font-weight: 650;
+  }
+  formtempo-trigger[data-revealed="true"] .trigger-state-chip {
+    border-color: var(--trigger-accent);
+    background: var(--trigger-tint);
+    color: var(--text);
+  }
+
+  .trigger-composition {
+    overflow: hidden;
+    background: var(--trigger-paper);
+    border-block: 1px solid var(--trigger-line);
+  }
+  .trigger-art {
+    display: block;
+    inline-size: min(100%, 46rem);
+    block-size: clamp(7.5rem, 22vw, 12rem);
+    margin-inline: auto;
+  }
+  .trigger-art-layer { transition: opacity .35s ease, transform .38s cubic-bezier(.16, 1, .3, 1); }
+  formtempo-trigger[data-revealed="false"] .trigger-art-layer { opacity: 0; transform: translateY(.7rem); }
+  formtempo-trigger[data-syncing] .trigger-art-layer { transition: none; }
+
+  .trigger-locations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0 .65rem .45rem;
+    list-style: none;
+    text-align: center;
+    font-size: .68rem;
+    color: var(--text-2);
+  }
+  .trigger-locations li {
+    border-block-start: 1px solid var(--line-strong);
+    padding-block-start: .35rem;
+    transition: color .18s;
+  }
+  formtempo-trigger[data-position="before"] [data-trigger-location="before"],
+  formtempo-trigger[data-position="inside"] [data-trigger-location="inside"],
+  formtempo-trigger[data-position="after"] [data-trigger-location="after"] {
+    border-color: var(--trigger-accent);
+    color: var(--trigger-ink);
+    font-weight: 700;
+  }
+
+  .trigger-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .4rem;
+    padding: .65rem clamp(.65rem, 2.2vw, 1.4rem) 0;
+  }
+  .trigger-stage button {
+    min-block-size: 2.5rem;
+    min-inline-size: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: .42rem;
+    padding: .38rem .35rem;
+    color: var(--trigger-ink);
+    background: var(--surface);
+    font: inherit;
+    font-size: clamp(.69rem, 2.3vw, .8rem);
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .trigger-stage button:hover {
+    border-color: var(--trigger-accent);
+    color: var(--trigger-accent);
+  }
+  .trigger-stage button:focus-visible {
+    outline: 2px solid var(--trigger-accent);
+    outline-offset: 2px;
+  }
+  .trigger-foot {
+    color: var(--text-2);
+    font-size: .73rem;
+    padding-block: .55rem;
+  }
+  .trigger-foot button {
+    flex: none;
+    padding-inline: .6rem;
+  }
+  .trigger-fallback {
+    justify-content: center;
+    gap: 1.25rem;
+    font-size: .78rem;
+  }
+  .trigger-fallback[hidden] { display: none; }
+  .trigger-fallback span { display: flex; align-items: center; gap: .35rem; }
+  .trigger-fallback i { inline-size: 1rem; block-size: .7rem; border: 1px dashed var(--text-3); }
+  .trigger-fallback span + span i { border: 1px solid var(--trigger-accent); background: var(--trigger-accent); }
+
+  .trigger-comparison { margin-block-start: 1.1rem; }
+  .trigger-comparison h3 { margin: 0; font-size: 1.05rem; }
+  .trigger-comparison p { color: var(--text-2); font-size: .84rem; }
+  .trigger-comparison table {
+    inline-size: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: clamp(.67rem, 2vw, .86rem);
+    text-align: start;
+  }
+  .trigger-comparison th, .trigger-comparison td {
+    padding: .55rem .2rem;
+    border-block-end: 1px solid var(--trigger-line);
+    overflow-wrap: anywhere;
+  }
+  .trigger-current-case { background: var(--trigger-tint); color: var(--text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .trigger-art-layer,
+    .trigger-locations li { transition: none; }
+  }
+  @media (max-height: 480px) {
+    formtempo-trigger[data-ready] .trigger-stage { inset-block-start: var(--trigger-sticky-top, .25rem); }
+    .trigger-art { block-size: 5rem; }
+  }
+</style>

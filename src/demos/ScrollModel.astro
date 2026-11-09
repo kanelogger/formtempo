@@ -1,0 +1,13 @@
+---
+import { scrollModelStage } from './scroll-model-stage';
+import { scrollProgressMarkup } from './scroll-progress-markup';
+import './scroll-progress.css';
+import './scroll-model.css';
+---
+<Fragment set:html={scrollProgressMarkup({ id: 'scroll-3d-model', stage: scrollModelStage, initial: 50 })} />
+<script>
+  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-scroll-progress="scroll-3d-model"]')) {
+    bindScrollProgress(demo, (progress) => demo.style.setProperty('--model-progress', String(progress)));
+  }
+</script>

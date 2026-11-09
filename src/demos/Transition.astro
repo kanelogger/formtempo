@@ -1,0 +1,175 @@
+---
+import { transitionGuideTarget } from './transition-guide-markup';
+import './transition-guide.css';
+
+interface Props { variant: string }
+
+const { variant } = Astro.props;
+const views = [
+  { id: 'index', label: '作品目录', annotation: '01', title: '潮汐档案', subtitle: 'COASTAL INDEX' },
+  { id: 'detail', label: '作品详情', annotation: '01 / DETAIL', title: '北岸潮线', subtitle: 'NORTH SHORE' },
+];
+const guidance: Record<string, string> = {
+  'mask-transition': '观察遮罩覆盖画面时，目录和详情在何处交换。',
+  'overlap-transition': '观察新旧画面在交叠时如何各自移动。',
+  'shared-element': '观察同一张潮线图怎样从目录卡片移到详情页。',
+};
+---
+
+<section class="transition-demo" data-transition-variant={variant} aria-label="页面转场演示">
+  <div class="transition-viewport" data-transition-viewport data-active-view="index">
+    {views.map((view) => (
+      <div class:list={['transition-view', `view-${view.id}`]} data-transition-view={view.id} data-view-label={view.label} hidden={view.id !== 'index'}>
+        <div class="view-heading">
+          <span>潮线图集</span>
+          <span>{view.label}</span>
+        </div>
+        <div class="view-copy">
+          <span>{view.annotation}</span>
+          <strong>{view.title}</strong>
+          <small>{view.subtitle}</small>
+        </div>
+        <div class="shared-art" data-shared-art data-flip-id="coastal-art">
+          <svg viewBox="0 0 320 164" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <rect width="320" height="164" fill="#39688b" />
+            <path d="M-10 141L62 62l26 27 56-63 70 88 34-49 84 62v47H-10Z" fill="#6d5581" />
+            <path d="M-10 157l91-76 32 34 61-36 56 43 46-29 56 41v40H-10Z" fill="#7299b4" />
+            <path d="M-10 155l79-25 41 17 73-31 39 14 67-3 43 15v32H-10Z" fill="#adcfdf" />
+            <g fill="none" stroke="#f7c98b" stroke-width="1" opacity=".83">
+              <path d="M-3 131l64-74 28 25 55-63 69 87 36-48 74 56" />
+              <path d="M-3 137l64-73 28 25 55-63 69 87 36-48 74 56" />
+              <path d="M-3 146l65-71 29 26 56-63 65 83 37-46 74 52" />
+            </g>
+            <circle cx="259" cy="38" r="13" fill="#f7c98b" />
+            <circle cx="259" cy="38" r="18" fill="none" stroke="#f7c98b" opacity=".55" />
+          </svg>
+        </div>
+        {view.id === 'index' && <Fragment set:html={transitionGuideTarget} />}
+      </div>
+    ))}
+    <div class="transition-mask" data-transition-mask hidden><span>潮线图集</span></div>
+  </div>
+
+  <p class="transition-guidance">{guidance[variant]}</p>
+  <div class="transition-controls" data-transition-controls hidden>
+    <div class="transition-buttons" role="group" aria-label="切换演示画面">
+      {views.map((view) => (
+        <button type="button" data-transition-action={view.id} aria-pressed={view.id === 'index'}>{view.label}</button>
+      ))}
+    </div>
+    <p data-transition-status role="status">当前画面 · 作品目录</p>
+  </div>
+
+  <noscript>
+    <div class="transition-static">
+      <div><span class="static-layout static-index"></span><span>起始 · 作品目录中的小图</span></div>
+      <div><span class="static-layout static-detail"></span><span>终止 · 作品详情中的大图</span></div>
+    </div>
+  </noscript>
+</section>
+
+<script>
+  import { bindTransitionStage } from './transition-interaction.js';
+
+  document.querySelectorAll<HTMLElement>('[data-transition-variant]').forEach((stage) => bindTransitionStage(stage));
+</script>
+
+<style>
+  .transition-demo {
+    --transition-accent: var(--family-transition);
+    --transition-tint: color-mix(in srgb, var(--surface-2) 86%, var(--transition-accent));
+    color: var(--text);
+  }
+  .transition-viewport {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    inline-size: 100%;
+    max-inline-size: 54rem;
+    aspect-ratio: 2.15 / 1;
+    margin-inline: auto;
+    border: 1px solid var(--line-hi);
+    border-radius: 14px;
+    background: var(--surface-2);
+  }
+  .transition-view { position: absolute; inset: 0; overflow: hidden; background: var(--surface-2); }
+  .transition-view[hidden], .transition-mask[hidden], .transition-controls[hidden] { display: none; }
+  .view-detail { background: var(--transition-tint); }
+  .view-heading {
+    position: absolute;
+    inset: 7% 7% auto;
+    display: flex;
+    justify-content: space-between;
+    gap: .5rem;
+    padding-block-end: .5rem;
+    border-block-end: 1px solid var(--line-strong);
+    color: var(--text-2);
+    font-size: clamp(.64rem, 1.3vw, .9rem);
+  }
+  .view-copy {
+    position: absolute;
+    inset: 32% 7% auto 55%;
+    display: grid;
+    gap: .24rem;
+    color: var(--text);
+  }
+  .view-detail .view-copy { inset: 40% 68% auto 7%; }
+  .view-copy strong { font-size: clamp(.9rem, 3vw, 2.1rem); line-height: 1.18; letter-spacing: -.025em; }
+  .view-copy span, .view-copy small { font-size: clamp(.54rem, 1.15vw, .78rem); letter-spacing: .055em; }
+  .shared-art {
+    position: absolute;
+    z-index: 1;
+    inset: 28% auto auto 7%;
+    inline-size: 43%;
+    aspect-ratio: 320 / 164;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #39688b;
+    transform-origin: top left;
+  }
+  .view-detail .shared-art { inset: 21% auto auto 36%; inline-size: 57%; }
+  .shared-art svg { display: block; inline-size: 100%; block-size: 100%; }
+  .transition-mask {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--transition-accent);
+    color: var(--on-accent);
+    font-size: clamp(1.05rem, 4vw, 2rem);
+    font-weight: 700;
+    pointer-events: none;
+    transform: translateX(-100%);
+  }
+  .transition-guidance, .transition-controls, .transition-static { max-inline-size: 54rem; margin-inline: auto; }
+  .transition-guidance { margin-block: .7rem .9rem; color: var(--text-2); font-size: .875rem; }
+  .transition-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .65rem 1rem; }
+  .transition-controls p { min-inline-size: 10em; margin: 0; color: var(--transition-accent); font-size: .875rem; text-align: end; }
+  .transition-buttons { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .transition-controls button {
+    min-block-size: 2.75rem;
+    padding: .45rem .75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: .875rem;
+    cursor: pointer;
+  }
+  .transition-controls button[aria-pressed='true'] { border-color: var(--transition-accent); background: var(--transition-tint); color: var(--text); }
+  .transition-controls button:hover:not([aria-disabled]) { border-color: var(--transition-accent); }
+  .transition-controls button[aria-disabled='true'] { cursor: wait; }
+  .transition-controls button:focus-visible { outline: 2px solid var(--transition-accent); outline-offset: 3px; }
+  .transition-static { display: flex; flex-wrap: wrap; gap: .75rem 1.3rem; color: var(--text-2); font-size: .875rem; }
+  .transition-static > div { display: flex; align-items: center; gap: .45rem; }
+  .static-layout { position: relative; inline-size: 3rem; block-size: 1.85rem; border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface-2); }
+  .static-layout::before { position: absolute; content: ''; border-radius: 2px; background: var(--transition-accent); }
+  .static-index::before { inset: 30% 52% 30% 12%; }
+  .static-detail::before { inset: 18% 12% 18% 30%; }
+  @media (max-width: 42rem) {
+    .transition-viewport { aspect-ratio: 1.62 / 1; }
+    .transition-controls p { text-align: start; }
+  }
+</style>

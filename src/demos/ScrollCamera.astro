@@ -1,0 +1,16 @@
+---
+import { scrollCameraStage } from './scroll-camera-stage';
+import { scrollProgressMarkup } from './scroll-progress-markup';
+import './scroll-progress.css';
+import './scroll-camera.css';
+---
+
+<Fragment set:html={scrollProgressMarkup({ id: 'scroll-camera', stage: scrollCameraStage, initial: 50 })} />
+
+<script>
+  import { bindScrollProgress } from './scroll-progress-interaction.js';
+
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-scroll-progress="scroll-camera"]')) {
+    bindScrollProgress(demo, (progress) => demo.style.setProperty('--camera-progress', String(progress)));
+  }
+</script>

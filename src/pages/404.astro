@@ -1,0 +1,28 @@
+---
+import Site from "../layouts/Site.astro";
+import Arrow from "../components/Arrow.astro";
+import { routes, withBase } from "../effects";
+---
+<Site title="案例未找到 · FormTempo" description="返回图鉴查找案例。" notFound>
+  <section class="container missing">
+    <h1>这个页面<em>不在图鉴里</em></h1>
+    <p class="intro">回到目录，按触发方式查找案例。</p>
+    <a class="btn btn-primary btn-lg" href={withBase(routes.index)}>浏览动效图鉴 <Arrow /></a>
+  </section>
+</Site>
+<style>
+  .missing {
+    display:grid;
+    justify-items:center;
+    align-content:center;
+    gap:1.5rem;
+    min-height:70svh;
+    padding-block:calc(var(--nav-h) + 3rem) 4rem;
+    text-align:center;
+  }
+  h1 {
+    font:600 clamp(2.2rem, 6vw, 4rem)/1.16 var(--font-heading);
+    letter-spacing:-.02em;
+    text-wrap:balance;
+  }
+</style>

@@ -1,0 +1,702 @@
+---
+import Arrow from "../components/Arrow.astro";
+import { clipArtwork } from "./driven-art";
+import { galleryArtwork as gallery } from "./gallery-art";
+
+interface Props {
+  variant: string;
+  home?: boolean;
+  detailHref?: string;
+}
+
+const { variant, home = false, detailHref } = Astro.props;
+const isClip = variant === 'clip-reveal';
+const isParallax = variant === 'layered-parallax';
+const hasNodes = home && isClip;
+const nodes = [
+  { label: '收拢', percent: 0 },
+  { label: '半开', percent: 50 },
+  { label: '展开', percent: 100 },
+];
+const initial = isClip ? 62 : isParallax ? 36 : 0;
+const initialDigits = [Math.floor(initial / 100), Math.floor(initial / 10) % 10, initial % 10];
+const digitStrip = Array.from({ length: 10 }, (_, digit) => digit);
+const specimen = isClip ? 'D·01' : isParallax ? 'D·02' : 'D·03';
+const title = isClip ? '裁剪展开' : isParallax ? '分层视差' : '横向画廊';
+const plate = `driven-${variant}-${home ? 'home' : 'detail'}`;
+---
+
+<div
+  class:list={['driven', { 'driven-home': home }]}
+  data-driven
+  data-driven-variant={variant}
+  data-mode="manual"
+  style={`--driven-inset: ${(100 - initial) / 2}%; --driven-p: ${initial / 100}`}
+>
+  <svg class="driven-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      {isClip && (
+        <symbol id={`${plate}-clip`} viewBox="0 0 760 430">
+          <Fragment set:html={clipArtwork} />
+        </symbol>
+      )}
+      {isParallax && (
+        <>
+          <symbol id={`${plate}-far`} viewBox="0 0 760 430">
+            <circle cx="509" cy="160" r="94" fill="#ef784d"/>
+            <path fill="#f7c98b" d="M-90 342 230 169l181 110 140-59 330 125v85H-90z"/>
+            <path fill="#e5a38a" d="m-90 371 224-70 127 29 144-55 235 74 260-41v122H-90z"/>
+          </symbol>
+          <symbol id={`${plate}-near`} viewBox="0 0 760 430">
+            <path fill="#628ca8" d="M-100 378q162-32 292-11t257 7q162-30 590 1v55H-100z"/>
+            <path fill="#39688b" d="M88 366H64l42-79 42 79h-24l36 46H52zm273 9h-24l47-100 47 100h-24l32 42H329zm292 0h-20l41-78 41 78h-21l29 43h-99z"/>
+          </symbol>
+        </>
+      )}
+      {!isClip && !isParallax && gallery.map(({ id, markup }) => (
+        <symbol id={`${plate}-${id}`} viewBox="0 0 760 430">
+          <Fragment set:html={markup} />
+        </symbol>
+      ))}
+    </defs>
+  </svg>
+
+  <div class="driven-track" data-driven-track>
+    <div class="driven-sticky" data-driven-sticky>
+      <figure class="driven-figure" aria-label={`${title}演示`} aria-describedby={home && isClip ? `${plate}-context` : undefined}>
+        <figcaption class="driven-caption">
+          <span><span class="driven-specimen">{specimen}</span> {title}</span>
+          {detailHref ? (
+            <a class="driven-detail-link" href={detailHref} aria-label={`查看${title}案例`}>查看案例 <Arrow diagonal /></a>
+          ) : <span class="driven-mode-label">滚动驱动</span>}
+        </figcaption>
+
+        <div class="driven-stage" class:list={{ 'driven-stage-clip': isClip, 'driven-stage-parallax': isParallax }}>
+          {isClip && (
+            <>
+              {home && (
+                <svg class="driven-context" viewBox="0 0 760 430" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                  <use href={`#${plate}-clip`} />
+                </svg>
+              )}
+              <svg class="driven-guides" viewBox="0 0 760 430" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <rect x="190" y="107.5" width="380" height="215" rx="1" stroke="var(--driven-guide)" fill="none" stroke-dasharray="3 6"/>
+                <path d="M380 196v38m-19-19h38" stroke="var(--driven-crosshair)" fill="none"/>
+                <path d="M23 43V23h20m674 0h20v20M23 387v20h20m674 0h20v-20" fill="none" stroke="var(--driven-fiducial)" stroke-width="1.1"/>
+              </svg>
+              <svg class="driven-art" data-driven-art viewBox="0 0 760 430" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                <use href={`#${plate}-clip`} />
+              </svg>
+              {home && <span class="driven-context-label" id={`${plate}-context`}>淡色为参照</span>}
+            </>
+          )}
+          {isParallax && (
+            <svg class="driven-art" data-driven-art viewBox="0 0 760 430" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+              <use class="driven-far" href={`#${plate}-far`} />
+              <use class="driven-near" href={`#${plate}-near`} />
+            </svg>
+          )}
+          {!isClip && !isParallax && (
+            <div class="driven-gallery" data-driven-art aria-hidden="true">
+              {gallery.map(({ id, caption }, index) => (
+                <div class="driven-gallery-plate">
+                  <svg viewBox="0 0 760 430" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <use href={`#${plate}-${id}`} />
+                  </svg>
+                  <span class="driven-gallery-label">{index + 1} / 3 · {caption}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div class="driven-rail">
+          <div class="driven-controls" data-driven-controls hidden>
+            <div class="driven-range-row" data-driven-range>
+              <label for={`${plate}-progress`}>演示进度</label>
+              <input id={`${plate}-progress`} type="range" min="0" max="100" value={initial} step="1" />
+              {!home && (
+                <span class="driven-meter" data-driven-meter role="progressbar" aria-label="演示进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={initial} hidden>
+                  <span></span>
+                </span>
+              )}
+              <span class="driven-readout" data-driven-progress data-value={initial} aria-hidden="true">
+                {initialDigits.map((digit, index) => (
+                  <span class="driven-digit" style={`opacity: ${initial < 10 ** (2 - index) && index < 2 ? 0 : 1}`}>
+                    <span data-driven-digit style={`transform: translateY(${-digit}em)`}>
+                      {digitStrip.map((glyph) => <span>{glyph}</span>)}
+                    </span>
+                  </span>
+                ))}
+                <span>%</span>
+              </span>
+            </div>
+            <div
+              class:list={['driven-step-row', { 'driven-nodes': hasNodes }]}
+              data-driven-steps
+              role={hasNodes ? 'group' : undefined}
+              aria-label={hasNodes ? '裁剪展开进度节点' : undefined}
+              hidden={!hasNodes}
+            >
+              {hasNodes ? nodes.map(({ label, percent }) => (
+                <button type="button" data-driven-step={percent} aria-pressed={initial === percent ? 'true' : 'false'}>
+                  {label} <span>{percent}%</span>
+                </button>
+              )) : (
+                <>
+                  <span>切换状态</span>
+                  <button type="button" data-driven-step="0" aria-pressed="false">起点</button>
+                  <button type="button" data-driven-step="100" aria-pressed="false">终点</button>
+                </>
+              )}
+            </div>
+            {!home && (
+              <div class="driven-mode-row" data-driven-modes>
+                <button type="button" data-driven-scroll aria-pressed="false">跟随页面滚动</button>
+                <span data-driven-hint hidden>向下滚动前进，向上滚动回退。</span>
+              </div>
+            )}
+          </div>
+
+          <div class="driven-static" data-driven-static>
+            <div>
+              <span>0% · 起点</span>
+              {isClip && <span class="driven-static-empty" aria-hidden="true"></span>}
+              {isParallax && (
+                <svg viewBox="0 0 760 430" aria-hidden="true" focusable="false">
+                  <use href={`#${plate}-far`} />
+                  <use href={`#${plate}-near`} />
+                </svg>
+              )}
+              {!isClip && !isParallax && (
+                <svg viewBox="0 0 760 430" aria-hidden="true" focusable="false"><use href={`#${plate}-arc`} /></svg>
+              )}
+            </div>
+            <div>
+              <span>100% · 终点</span>
+              <svg viewBox="0 0 760 430" aria-hidden="true" focusable="false">
+                {isClip && <use href={`#${plate}-clip`} />}
+                {isParallax && (
+                  <>
+                    <use href={`#${plate}-far`} transform="translate(-100 0)" />
+                    <use href={`#${plate}-near`} transform="translate(-235 0)" />
+                  </>
+                )}
+                {!isClip && !isParallax && <use href={`#${plate}-orbit`} />}
+              </svg>
+            </div>
+          </div>
+        </div>
+      </figure>
+    </div>
+    {!home && <div class="driven-distance" aria-hidden="true"></div>}
+  </div>
+</div>
+
+<script>
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-driven]')) {
+    if (demo.dataset.drivenVariant === 'clip-reveal' && !CSS.supports('clip-path', 'inset(0%)')) continue;
+
+    const track = demo.querySelector<HTMLElement>('[data-driven-track]');
+    const sticky = demo.querySelector<HTMLElement>('[data-driven-sticky]');
+    const range = demo.querySelector<HTMLInputElement>('input[type="range"]');
+    const readout = demo.querySelector<HTMLElement>('[data-driven-progress]');
+    const meter = demo.querySelector<HTMLElement>('[data-driven-meter]');
+    const controls = demo.querySelector<HTMLElement>('[data-driven-controls]');
+    const fallback = demo.querySelector<HTMLElement>('[data-driven-static]');
+    const rangeRow = demo.querySelector<HTMLElement>('[data-driven-range]');
+    const stepRow = demo.querySelector<HTMLElement>('[data-driven-steps]');
+    const scrollToggle = demo.querySelector<HTMLButtonElement>('[data-driven-scroll]');
+    const scrollHint = demo.querySelector<HTMLElement>('[data-driven-hint]');
+    const modeRow = demo.querySelector<HTMLElement>('[data-driven-modes]');
+
+    if (!track || !sticky || !range || !readout || !controls || !fallback || !rangeRow || !stepRow) continue;
+
+    const hasNodes = stepRow.classList.contains('driven-nodes');
+    const steps = [...stepRow.querySelectorAll<HTMLButtonElement>('[data-driven-step]')];
+    const digits = [...readout.querySelectorAll<HTMLElement>('[data-driven-digit]')];
+    let current = range.valueAsNumber / 100;
+    let manual = current;
+    let start = 0;
+    let distance = 1;
+    let frame = 0;
+
+    const setProgress = (value: number) => {
+      current = value;
+      const percent = Math.round(value * 100);
+
+      demo.style.setProperty('--driven-p', String(value));
+      if (demo.dataset.drivenVariant === 'clip-reveal') {
+        demo.style.setProperty('--driven-inset', `${(1 - value) * 50}%`);
+      }
+
+      if (range.valueAsNumber !== percent) range.value = String(percent);
+      if (readout.dataset.value !== String(percent)) {
+        readout.dataset.value = String(percent);
+        meter?.setAttribute('aria-valuenow', String(percent));
+        digits.forEach((strip, index) => {
+          const place = 10 ** (2 - index);
+          strip.style.transform = `translateY(${-(Math.floor(percent / place) % 10)}em)`;
+          if (strip.parentElement && index < 2) strip.parentElement.style.opacity = percent < place ? '0' : '1';
+        });
+      }
+      if (!stepRow.hidden) {
+        for (const step of steps) {
+          step.setAttribute('aria-pressed', String(Number(step.dataset.drivenStep) === percent));
+        }
+      }
+    };
+
+    const updateFromScroll = () => {
+      if (demo.dataset.mode !== 'scroll' || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (demo.dataset.mode === 'scroll') {
+          setProgress(Math.max(0, Math.min(1, (window.scrollY - start) / distance)));
+        }
+      });
+    };
+
+    const measure = () => {
+      if (demo.dataset.mode !== 'scroll') return;
+
+      const stickyTop = Number.parseFloat(getComputedStyle(sticky).top) || 0;
+      start = track.getBoundingClientRect().top + window.scrollY - stickyTop;
+      distance = Math.max(1, track.offsetHeight - sticky.offsetHeight);
+      updateFromScroll();
+    };
+
+    const setMode = (mode: 'manual' | 'scroll', keepStageInView = true) => {
+      const returnToStage = keepStageInView && demo.dataset.mode === 'scroll' && mode === 'manual' && window.scrollY > start;
+      demo.dataset.mode = mode;
+      const scrollMode = mode === 'scroll';
+
+      range.disabled = scrollMode;
+      range.hidden = scrollMode;
+      if (meter) meter.hidden = !scrollMode;
+      scrollToggle?.setAttribute('aria-pressed', String(scrollMode));
+      if (scrollHint) scrollHint.hidden = !scrollMode;
+
+      if (scrollMode) {
+        measure();
+      } else {
+        setProgress(manual);
+        if (returnToStage) window.scrollTo({ top: start, behavior: 'instant' });
+      }
+    };
+
+    range.addEventListener('input', () => {
+      if (demo.dataset.mode !== 'manual') return;
+
+      manual = range.valueAsNumber / 100;
+      setProgress(manual);
+    });
+
+    for (const step of steps) {
+      step.addEventListener('click', () => {
+        manual = Number(step.dataset.drivenStep) / 100;
+        setProgress(manual);
+      });
+    }
+    demo.addEventListener('formtempo:guide-reset', () => setMode('manual', false));
+
+    if (scrollToggle) {
+      scrollToggle.addEventListener('click', () => {
+        setMode(demo.dataset.mode === 'scroll' ? 'manual' : 'scroll');
+      });
+      window.addEventListener('scroll', updateFromScroll, { passive: true });
+      window.addEventListener('pageshow', measure);
+      const resize = new ResizeObserver(measure);
+      resize.observe(track);
+      resize.observe(sticky);
+      resize.observe(document.body);
+    }
+
+    const syncMotion = () => {
+      const reduce = reducedMotion.matches;
+
+      rangeRow.hidden = reduce;
+      stepRow.hidden = !reduce && !hasNodes;
+      if (modeRow) modeRow.hidden = reduce;
+
+      if (reduce) {
+        manual = hasNodes ? Math.round(current * 2) / 2 : Math.round(current);
+        setMode('manual');
+      }
+    };
+
+    setProgress(manual);
+    syncMotion();
+    reducedMotion.addEventListener('change', syncMotion);
+    fallback.hidden = true;
+    controls.hidden = false;
+  }
+</script>
+
+<style>
+  .driven {
+    --driven-accent: var(--family-driven);
+    --driven-ink: var(--text);
+    --driven-line: var(--line-hi);
+    --driven-meta: var(--text-2);
+    --driven-guide: var(--line-hi);
+    --driven-crosshair: var(--line-strong);
+    --driven-fiducial: var(--text-3);
+    --driven-canvas: var(--surface-2);
+    --driven-sky: #e8f3fa;
+    --driven-top: 1rem;
+    min-inline-size: 0;
+    color: var(--driven-ink);
+  }
+
+  .driven-home .driven-figure {
+    background: var(--surface);
+    border-radius: 6px;
+  }
+
+  .driven-home .driven-caption { padding-block: .22rem; }
+
+  .driven-detail-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 2.75rem;
+    color: var(--text-2);
+    font-size: .78rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .driven-detail-link:hover { color: var(--accent-text); }
+
+  .driven-detail-link :global(svg) {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .driven [hidden] {
+    display: none;
+  }
+
+  .driven-defs {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .driven-figure {
+    margin: 0;
+    border: 1px solid var(--driven-line);
+    background: var(--surface);
+  }
+
+  .driven-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+
+  .driven-specimen {
+    margin-inline-end: 0.5rem;
+    color: var(--driven-accent);
+    font: 600 0.8rem ui-monospace, monospace;
+  }
+
+  .driven-mode-label {
+    color: var(--driven-meta);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .driven-stage {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    aspect-ratio: 760 / 430;
+    border-block: 1px solid var(--driven-line);
+    background: var(--driven-canvas);
+  }
+
+  .driven-stage-parallax {
+    background: var(--driven-sky);
+  }
+
+  .driven-context,
+  .driven-guides,
+  .driven-art,
+  .driven-gallery {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .driven-context { opacity: .34; }
+
+  .driven-context-label {
+    position: absolute;
+    inset-inline-start: .6rem;
+    inset-block-end: .6rem;
+    padding: .17rem .42rem;
+    border-radius: 4px;
+    background: var(--plate);
+    color: var(--text-2);
+    font-size: .67rem;
+    line-height: 1.5;
+  }
+
+  .driven-stage-clip .driven-art {
+    clip-path: inset(var(--driven-inset));
+  }
+
+  @supports not (clip-path: inset(0%)) {
+    .driven-stage-clip .driven-art {
+      visibility: hidden;
+    }
+  }
+
+  .driven-far {
+    transform: translateX(calc(var(--driven-p) * -13%));
+  }
+
+  .driven-near {
+    transform: translateX(calc(var(--driven-p) * -31%));
+  }
+
+  .driven-gallery {
+    width: 300%;
+    display: flex;
+    transform: translateX(calc(var(--driven-p) * (-200% / 3)));
+  }
+
+  .driven-gallery-plate {
+    position: relative;
+    flex: 0 0 calc(100% / 3);
+    min-inline-size: 0;
+  }
+
+  .driven-gallery-plate svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .driven-gallery-label {
+    position: absolute;
+    inset-inline-start: 0.9rem;
+    inset-block-end: 0.9rem;
+    padding: 0.25rem 0.45rem;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.75rem;
+  }
+
+  .driven-rail {
+    display: grid;
+    align-content: center;
+    min-block-size: 6.4rem;
+    padding: 0.55rem 0.8rem;
+  }
+
+  .driven-home .driven-rail {
+    min-block-size: 3.8rem;
+  }
+
+  .driven-range-row,
+  .driven-step-row {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .driven-range-row label,
+  .driven-step-row > span {
+    flex: 0 0 auto;
+    font-weight: 650;
+  }
+
+  .driven-range-row input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    margin: 0;
+    accent-color: var(--driven-accent);
+    cursor: ew-resize;
+  }
+
+  .driven-range-row input:disabled {
+    cursor: default;
+  }
+
+  .driven-readout {
+    flex: 0 0 4ch;
+    display: flex;
+    justify-content: flex-end;
+    color: var(--driven-accent);
+    font: 650 0.875rem ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .driven-digit {
+    width: 1ch;
+    height: 1em;
+    overflow: hidden;
+  }
+
+  .driven-digit span {
+    display: block;
+  }
+
+  .driven-meter {
+    flex: 1 1 auto;
+    height: 0.42rem;
+    border-radius: 0.21rem;
+    overflow: hidden;
+    background: var(--sunken);
+  }
+
+  .driven-meter > span {
+    display: block;
+    height: 100%;
+    background: var(--driven-accent);
+    transform: scaleX(var(--driven-p));
+    transform-origin: left;
+  }
+
+  .driven-mode-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    min-block-size: 2.5rem;
+    gap: 0.35rem 0.65rem;
+    color: var(--driven-meta);
+    font-size: 0.75rem;
+  }
+
+  .driven-controls button {
+    min-block-size: 2.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 0.2rem;
+    padding: 0.35rem 0.55rem;
+    color: var(--driven-accent);
+    background: var(--surface-2);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .driven-controls button:hover,
+  .driven-controls button[aria-pressed="true"] {
+    border-color: var(--driven-accent);
+    color: var(--on-accent);
+    background: var(--driven-accent);
+  }
+
+  .driven-nodes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+  }
+
+  .driven-controls .driven-nodes button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .25rem;
+    min-block-size: 2.75rem;
+    border: 0;
+    border-block-start: 2px solid var(--driven-line);
+    border-radius: 0;
+    padding: .35rem .15rem;
+    background: transparent;
+    color: var(--driven-meta);
+    white-space: nowrap;
+  }
+
+  .driven-controls .driven-nodes button:hover,
+  .driven-controls .driven-nodes button[aria-pressed="true"] {
+    border-color: var(--driven-accent);
+    color: var(--driven-ink);
+  }
+
+  .driven-nodes button span {
+    font: .75rem/1 var(--font-mono);
+  }
+
+  .driven-controls :focus-visible {
+    outline: 2px solid var(--driven-accent);
+    outline-offset: 2px;
+  }
+
+  .driven-static {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.9rem;
+    color: var(--driven-meta);
+    font-size: 0.75rem;
+  }
+
+  .driven-static > div {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .driven-static svg,
+  .driven-static-empty {
+    display: block;
+    width: 2.75rem;
+    aspect-ratio: 760 / 430;
+    border: 1px solid var(--driven-line);
+  }
+
+  .driven-static-empty {
+    background: var(--driven-canvas);
+  }
+
+  .driven-static svg {
+    background: var(--driven-sky);
+  }
+
+  .driven-distance {
+    display: none;
+  }
+
+  .driven[data-mode="scroll"] .driven-sticky {
+    position: sticky;
+    top: var(--driven-top);
+    z-index: 1;
+  }
+
+  .driven[data-mode="scroll"] .driven-distance {
+    display: block;
+    height: clamp(22rem, 85vh, 55rem);
+  }
+
+  @media (max-width: 34rem) {
+    .driven-stage {
+      aspect-ratio: 7 / 5;
+    }
+
+    .driven-caption,
+    .driven-rail {
+      padding-inline: 0.7rem;
+    }
+  }
+</style>

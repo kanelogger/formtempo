@@ -1,0 +1,14 @@
+.scroll-scene { margin: 0; }
+.scroll-scene__canvas { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border-radius: 12px; background: #1e3446; }
+.scroll-scene__world { position: absolute; inset: 0; perspective: 800px; }
+.scroll-scene__room { position: absolute; inset: 0; overflow: hidden; transform-style: preserve-3d; backface-visibility: hidden; }
+.scroll-scene__room--day { background: linear-gradient(#e8f3fa 65%, #bfd5e0 65%); opacity: clamp(0, calc(1.5 - 1.5 * var(--scene-progress, .5)), 1); transform: translateZ(calc(-400px * var(--scene-progress, .5))) rotateY(calc(-22deg * var(--scene-progress, .5))); }
+.scroll-scene__room--night { background: linear-gradient(#263b59 65%, #3a5471 65%); opacity: clamp(0, calc(1.5 * var(--scene-progress, .5) - .5), 1); transform: translateZ(calc(-400px * (1 - var(--scene-progress, .5)))) rotateY(calc(22deg * (1 - var(--scene-progress, .5)))); }
+.scroll-scene__orb { position: absolute; left: 42%; top: 19%; width: 16%; aspect-ratio: 1; border-radius: 50%; background: #ef784d; }
+.scroll-scene__room--night .scroll-scene__orb { background: #f7d7a4; }
+.scroll-scene__plinth { position: absolute; left: 34%; top: 55%; width: 32%; height: 25%; background: #6291ad; transform: rotateX(12deg); }
+.scroll-scene__room--night .scroll-scene__plinth { background: #a7c8d9; }
+.scroll-scene__room b { position: absolute; left: 1.25rem; bottom: 1rem; color: #173e56; font: 600 .8rem/1.4 system-ui, sans-serif; }
+.scroll-scene__room--day b { opacity: clamp(0, calc(1 - 4 * var(--scene-progress, .5)), 1); }
+.scroll-scene__room--night b { color: #fff; opacity: clamp(0, calc(4 * var(--scene-progress, .5) - 3), 1); }
+.scroll-scene figcaption { margin-block-start: .65rem; color: var(--text-2); font-size: .875rem; line-height: 1.55; }

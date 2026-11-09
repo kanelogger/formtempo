@@ -1,0 +1,93 @@
+.scroll-progress {
+  --progress-sticky-top: calc(var(--nav-h, 0px) + 1rem);
+  color: var(--text);
+}
+
+.scroll-progress__panel {
+  min-width: 0;
+  padding: clamp(.65rem, 2vw, 1.35rem);
+  border: 1px solid var(--line-hi);
+  border-radius: 14px;
+  background: var(--plate);
+}
+
+.scroll-progress__controls { display: grid; gap: .65rem; margin-top: clamp(.8rem, 2vw, 1.2rem); }
+.scroll-progress [hidden] { display: none !important; }
+.scroll-progress__row {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) 4ch;
+  align-items: center;
+  gap: .5rem clamp(.55rem, 2vw, 1.25rem);
+  padding: .2rem clamp(.55rem, 2vw, 1rem);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: .8125rem;
+  font-weight: 600;
+}
+
+.scroll-progress__row input,
+.scroll-progress__row progress {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.scroll-progress__row input { height: 44px; cursor: pointer; }
+.scroll-progress__row progress { height: .75rem; }
+.scroll-progress__value {
+  color: var(--accent-text);
+  font: 500 .8125rem/1 var(--font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.scroll-progress__mode, .scroll-progress__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .65rem;
+}
+
+.scroll-progress__mode p { margin: 0; color: var(--text-2); font-size: .8125rem; }
+.scroll-progress__controls button {
+  min-height: 44px;
+  padding: .45rem .72rem;
+  border: 1px solid var(--line-hi);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scroll-progress__controls button:hover,
+.scroll-progress__steps button[aria-pressed="true"] {
+  border-color: var(--accent-text);
+  color: var(--accent-text);
+}
+
+.scroll-progress__controls :is(button, input):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.scroll-progress__distance { display: none; }
+.scroll-progress[data-mode="scroll"] .scroll-progress__panel {
+  position: sticky;
+  top: var(--progress-sticky-top);
+  z-index: 1;
+}
+
+.scroll-progress[data-mode="scroll"] .scroll-progress__distance {
+  display: block;
+  height: clamp(22rem, 85vh, 55rem);
+}
+
+@media (max-width: 34rem) {
+  .scroll-progress__row { grid-template-columns: minmax(0, 1fr) 4ch; padding-block: .35rem; gap: .2rem .55rem; }
+  .scroll-progress__row > :first-child { grid-column: 1 / -1; }
+  .scroll-progress__steps { gap: .3rem; }
+  .scroll-progress__steps button { padding-inline: .45rem; }
+}

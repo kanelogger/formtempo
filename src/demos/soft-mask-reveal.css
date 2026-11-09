@@ -1,0 +1,59 @@
+.soft-mask-reveal {
+  --soft-mask-progress: .5;
+  --soft-mask-inset: calc((1 - var(--soft-mask-progress)) * 50%);
+  --soft-mask-feather: min(7%, var(--soft-mask-inset), calc(50% - var(--soft-mask-inset)));
+  --soft-mask-clear: calc(var(--soft-mask-inset) - var(--soft-mask-feather));
+  --soft-mask-solid: calc(var(--soft-mask-inset) + var(--soft-mask-feather));
+  --soft-mask-stops: transparent var(--soft-mask-clear), #000 var(--soft-mask-solid),
+    #000 calc(100% - var(--soft-mask-solid)), transparent calc(100% - var(--soft-mask-clear));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.65rem, 2vw, 1.25rem);
+}
+
+.soft-mask-reveal figure { margin: 0; }
+
+.soft-mask-reveal__well {
+  position: relative;
+  aspect-ratio: 760 / 430;
+  overflow: hidden;
+  border: 1px solid var(--line-hi);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.soft-mask-reveal__art,
+.soft-mask-reveal__vertical { position: absolute; inset: 0; }
+
+.soft-mask-reveal__art svg { display: block; width: 100%; height: 100%; }
+
+.soft-mask-reveal__art--hard { clip-path: inset(var(--soft-mask-inset)); }
+
+.soft-mask-reveal__art--feather {
+  -webkit-mask-image: linear-gradient(to right, var(--soft-mask-stops));
+  mask-image: linear-gradient(to right, var(--soft-mask-stops));
+}
+
+.soft-mask-reveal__vertical {
+  -webkit-mask-image: linear-gradient(to bottom, var(--soft-mask-stops));
+  mask-image: linear-gradient(to bottom, var(--soft-mask-stops));
+}
+
+.soft-mask-reveal[data-mask-state="empty"] .soft-mask-reveal__art { visibility: hidden; }
+
+.soft-mask-reveal[data-mask-state="full"] .soft-mask-reveal__art--hard { clip-path: none; }
+
+.soft-mask-reveal[data-mask-state="full"] :is(.soft-mask-reveal__art--feather, .soft-mask-reveal__vertical) {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.soft-mask-reveal figcaption {
+  display: grid;
+  gap: .18rem;
+  padding-block: .65rem .15rem;
+  line-height: 1.4;
+}
+
+.soft-mask-reveal figcaption strong { font-size: .875rem; font-weight: 650; }
+.soft-mask-reveal figcaption span { color: var(--text-2); font-size: .75rem; }
