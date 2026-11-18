@@ -23,4 +23,6 @@ npm run dev
 2. 在 `src/demos/` 的对应分类中添加演示和两份可独立运行的 HTML 示例。原生与 GSAP 写法应呈现同一种行为。
 3. 补充目录示意和产物检查，运行 `npm run verify`，再测试鼠标、触屏、键盘和减少动态效果。
 
+Agent 协作步骤和交接约定见[开发工作流](AGENTS.md#开发工作流)。
+
 `main` 通过检查后由 GitHub Actions 将静态产物发布到 GitHub Pages。

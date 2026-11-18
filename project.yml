@@ -1,0 +1,112 @@
+schema_version: 1
+project:
+  name: FormTempo
+  purpose: 可操作的网页动效图鉴，每个案例提供行为说明以及可独立打开的原生与 GSAP 示例。
+  language: zh-CN
+  timezone: null
+
+environment:
+  # 这里列出项目已声明的执行平台。其他开发平台的支持范围尚未声明。
+  supported_platforms:
+    - GitHub Actions 的 ubuntu-latest 构建环境
+  toolchains:
+    - name: Node.js
+      version_source: package.json 的 engines.node 声明兼容范围，README.md 和 Pages 工作流选择 Node.js 24。
+      check: node --version
+    - name: npm
+      version_source: package-lock.json 固定依赖树，项目未固定 npm 版本。
+      check: npm --version
+    - name: Astro 与 TypeScript
+      version_source: package.json 和 package-lock.json
+      check: npm ls astro @astrojs/check typescript --depth=0
+  commands:
+    install:
+      run: npm ci
+      working_directory: "."
+      definition_source: .github/workflows/pages.yml
+      prerequisites: [符合 engines.node 的 Node.js, npm, package-lock.json, 可用的 npm 缓存或 registry]
+      side_effects: [替换当前工作副本的 node_modules/, 更新 npm 缓存, 缓存缺失时访问 registry]
+      verification_scope: 按锁文件安装项目依赖。
+      failure_handling: 安装失败或中断时保留报错，在隔离副本按原锁文件重试。
+    dev:
+      run: npm run dev
+      working_directory: "."
+      definition_source: package.json
+      prerequisites: [已安装锁定依赖]
+      side_effects: [监听本地端口, 生成 Astro 类型和开发缓存]
+      verification_scope: 本地开发页面与热更新。
+      failure_handling: 按终端实际给出的地址访问 /formtempo/，完成后停止本次进程。
+    check:
+      run: npm run check
+      working_directory: "."
+      definition_source: package.json
+      prerequisites: [已安装锁定依赖]
+      side_effects: [生成 .astro/ 类型与工具缓存]
+      verification_scope: Astro 和 TypeScript 诊断。
+      failure_handling: 按文件和位置修正诊断后重跑。
+    build:
+      run: npm run build
+      working_directory: "."
+      definition_source: package.json
+      prerequisites: [已安装锁定依赖]
+      side_effects: [生成类型和工具缓存, 重建 dist/]
+      verification_scope: 按 astro.config.mjs 预渲染静态路由和资源。
+      failure_handling: 构建失败或中断后修复首个错误，再完整重建。
+    verify:
+      run: npm run verify
+      working_directory: "."
+      definition_source: package.json
+      prerequisites: [符合 engines.node 的 Node.js, npm, 已安装锁定依赖]
+      side_effects: [生成 .astro/ 和工具缓存, 重建 dist/]
+      verification_scope: 依次运行类型检查、生产构建和 scripts/verify-build.mjs，检查案例与示例路由、资源引用和首页脚本预算。交互回读在浏览器完成。
+      failure_handling: 根据首个失败阶段定位问题。命令没有项目级超时。如手动中断，修正后从头重跑。
+    preview:
+      run: npm run preview
+      working_directory: "."
+      definition_source: package.json
+      prerequisites: [已安装锁定依赖, 本次构建成功的 dist/]
+      side_effects: [监听本地端口]
+      verification_scope: 通过 /formtempo/ 访问最近一次生产构建。
+      failure_handling: 以进程输出确定端口，确认基础路径与构建版本，结束时停止本次进程。
+  services:
+    - name: 本地静态预览
+      connection_source: astro.config.mjs 的 base 以及预览进程实际输出的本地地址
+      start: preview
+      readiness: 在该地址的 /formtempo/ 打开首页并进入动效图鉴。
+      stop: 停止本次启动的预览进程。
+  tools:
+    - name: 浏览器
+      provided_by: 开发环境
+      source: README.md
+      version_source: null
+      required_for: 回读案例交互，检查不同输入方式与减少动态效果。
+  variables:
+    - name: ASTRO_TELEMETRY_DISABLED
+      purpose: CI 构建中关闭 Astro 遥测。
+      source: .github/workflows/pages.yml
+  local_paths:
+    build:
+      path: dist/
+      retention: 构建可重新生成，Pages 使用本次验证后的产物。
+    generated_types:
+      path: .astro/
+      retention: 本机生成的 Astro 类型与缓存。
+    bootstrap:
+      path: .agents/state/bootstrap/
+      retention: 本机保留计划与恢复收据，Git 忽略。
+
+requirements:
+  filesystem:
+    - {path: src/, access: [read], purpose: 构建案例页面与独立示例}
+    - {path: public/, access: [read], purpose: 构建静态资源}
+    - {path: scripts/, access: [read], purpose: 核对产物验收}
+    - {path: dist/, access: [read, write], purpose: 重建与检查站点}
+    - {path: .astro/, access: [read, write], purpose: 生成 Astro 类型}
+    - {path: node_modules/, access: [read, write], purpose: 安装锁定依赖与维护工具缓存}
+  network:
+    - 安装缺失依赖时使用 npm registry，浏览器预览使用本地回环地址。
+    - 独立 GSAP 示例按示例源码加载 jsDelivr，站点导航可从 GitHub API 读取仓库星数。
+    - Pages 工作流由 .github/workflows/pages.yml 声明，main 上符合条件的非 PR 运行在构建成功后发布 dist/。
+guides:
+  development: README.md#本地运行
+  workflow: AGENTS.md#开发工作流

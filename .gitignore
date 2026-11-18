@@ -154,3 +154,7 @@ private-*/
 PLAN.md
 .DS_Store
 .impeccable
+
+# Agent 本地运行记录
+/.agents/state/
+.bootstrap-*.tmp

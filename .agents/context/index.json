@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "entries": {
+    "workflow": {
+      "file": "AGENTS.md",
+      "section": "开发工作流",
+      "aliases": [
+        "开发工作流"
+      ],
+      "summary": "按任务阶段查阅工作步骤、评审和交接责任。",
+      "when": [
+        "start",
+        "handoff"
+      ],
+      "sha256": "03fad93557493b30ea66260ee405c2836b707ef99353e7f7478210e79769faea"
+    },
+    "checks.verify": {
+      "file": "project.yml",
+      "select": [
+        "environment",
+        "commands",
+        "verify"
+      ],
+      "aliases": [
+        "检查命令"
+      ],
+      "summary": "在项目根执行完整检查前，核对命令、前置条件和受影响的产物。",
+      "when": [
+        "start",
+        "verify"
+      ],
+      "sha256": "498cb7fb69763016b7f7350ed0272e3d66e119f297c06e607228c5ade372fa1d",
+      "sources": [
+        {
+          "file": "package.json",
+          "sha256": "bc4711417b08b44df0ee2312c40e02ba1a2c2e213577a1c472140afc3862e578"
+        },
+        {
+          "file": "scripts/verify-build.mjs",
+          "sha256": "85451fa44f32d0a8dc82a80010ce46eb092062b22f100c067a5d8c97fbb69e25"
+        }
+      ]
+    },
+    "site.preview": {
+      "file": "project.yml",
+      "select": [
+        "environment",
+        "commands",
+        "preview"
+      ],
+      "aliases": [
+        "本地预览"
+      ],
+      "summary": "构建后查本地预览的入口与就绪条件。",
+      "when": [
+        "verify"
+      ],
+      "sha256": "498cb7fb69763016b7f7350ed0272e3d66e119f297c06e607228c5ade372fa1d",
+      "sources": [
+        {
+          "file": "astro.config.mjs",
+          "sha256": "fc7cbf3c207827fb3fbc3acf1ac13d3c89bcef4f0c42b8dca5efbb1a396a8645"
+        },
+        {
+          "file": "package.json",
+          "sha256": "bc4711417b08b44df0ee2312c40e02ba1a2c2e213577a1c472140afc3862e578"
+        }
+      ]
+    },
+    "atlas.add-case": {
+      "file": "README.md",
+      "section": "新增案例",
+      "aliases": [
+        "新增案例"
+      ],
+      "summary": "调整目录、演示或示例时，先读新增案例步骤。",
+      "when": [
+        "plan",
+        "implement"
+      ],
+      "sha256": "6c08bd010116812eb0f9390bb86a75806cf5b223a5328330e2cdf7bcb5ab4d39"
+    },
+    "examples.collect": {
+      "file": "src/examples.ts",
+      "aliases": [
+        "独立示例收集"
+      ],
+      "summary": "查原生与 GSAP 的示例对怎样收集并注入导览。",
+      "when": [
+        "implement"
+      ],
+      "sha256": "1b5ed5b50b0d036027138aa69552df14818b28fbf515197503b94af04124d293"
+    },
+    "examples.route": {
+      "file": "src/pages/examples/[slug]/[implementation].html.ts",
+      "aliases": [
+        "独立示例路由"
+      ],
+      "summary": "核对独立 HTML 路由实际枚举的数据与输出。",
+      "when": [
+        "plan",
+        "verify"
+      ],
+      "sha256": "9f57587d251fe883baa0537c62241234483695963dc53007bf4aeb3c549ce34c"
+    },
+    "pointer.magnetic": {
+      "file": "src/demos/pointer-comparison-interaction.js",
+      "aliases": [
+        "磁吸按钮"
+      ],
+      "summary": "核对磁吸按钮的输入事件、确认计数与减少动态效果分支。",
+      "when": [
+        "implement",
+        "verify"
+      ],
+      "sha256": "f2aaf9b948459c3b83c969fe34dc96b6e3cacbe5627fc02538f2c82aaf0b6040"
+    },
+    "lessons.examples": {
+      "file": "LESSONS.md",
+      "section": "独立示例要从构建产物验收",
+      "aliases": [
+        "示例缺页排查"
+      ],
+      "summary": "独立示例缺失时，查阅产物负例与交互复现方法。",
+      "when": [
+        "plan",
+        "handoff"
+      ],
+      "sha256": "7508b7797472ce14d22855f768d93be2ed8c941c2bae4dd78097b74f914f6efa",
+      "sources": [
+        {
+          "file": "src/pages/effects/[slug].astro",
+          "sha256": "bdbfb6f9ffc61e2de059616dd2043018dbf2b7516bc4b6ae845e4fb9d524042b"
+        },
+        {
+          "file": "src/pages/examples/[slug]/[implementation].html.ts",
+          "sha256": "9f57587d251fe883baa0537c62241234483695963dc53007bf4aeb3c549ce34c"
+        },
+        {
+          "file": "src/examples.ts",
+          "sha256": "1b5ed5b50b0d036027138aa69552df14818b28fbf515197503b94af04124d293"
+        },
+        {
+          "file": "scripts/verify-build.mjs",
+          "sha256": "85451fa44f32d0a8dc82a80010ce46eb092062b22f100c067a5d8c97fbb69e25"
+        },
+        {
+          "file": "src/demos/pointer-comparison-interaction.js",
+          "sha256": "f2aaf9b948459c3b83c969fe34dc96b6e3cacbe5627fc02538f2c82aaf0b6040"
+        }
+      ]
+    }
+  }
+}
