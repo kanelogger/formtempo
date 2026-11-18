@@ -1,0 +1,15 @@
+---
+import { hoverSelectionMarkup, type SelectionVariant } from './hover-selection-markup';
+import './hover-selection.css';
+
+interface Props { variant: string }
+const { variant } = Astro.props;
+---
+<Fragment set:html={hoverSelectionMarkup(variant as SelectionVariant)} />
+<script>
+  import { bindHoverSelection } from './hover-selection-interaction.js';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-hover-selection]')) {
+    bindHoverSelection(root);
+  }
+</script>

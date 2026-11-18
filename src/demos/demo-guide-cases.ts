@@ -85,6 +85,16 @@ function transition(text: string): DemoGuide {
   };
 }
 
+function hoverSelection(first: string, second: string): DemoGuide {
+  return {
+    view: '[data-hover-selection]', reset: '[data-hover-selection]',
+    steps: [
+      pointer('[data-choice="1"]', 'enter', first, [.5, .5]),
+      pointer('[data-choice="2"]', 'enter', second, [.5, .5]),
+    ],
+  };
+}
+
 export const demoGuides: Readonly<Record<string, DemoGuide>> = {
   'symmetric-transition': pointerPath([-.05, .5], '指针移出，揭示层沿原路退回左侧。'),
   'asymmetric-transition': pointerPath([1.05, .5], '指针移出，揭示层继续向右离开。'),
@@ -118,6 +128,38 @@ export const demoGuides: Readonly<Record<string, DemoGuide>> = {
     steps: [
       pointer(hover, 'enter', '指针移入，作品说明出现。', [.45, .65], 600),
       pointer(hover, 'leave', '指针移出，说明收起。也可用按钮保持显示。', [.45, -.06]),
+    ],
+  },
+  'hover-accordion': hoverSelection('移入中间的作品，展开的卡片挤窄两侧。', '移到第三幅，中间的作品随之收窄。'),
+  'magnetic-cursor': {
+    view: '[data-cursor-field]', reset: '[data-hover-target]',
+    reducedSteps: [
+      click('[data-cursor-toggle]', '吸附时，光标与靶心重合。'),
+      click('[data-cursor-toggle]', '释放后，光标与圆靶分开。'),
+    ],
+    steps: [
+      pointer('[data-cursor-field]', 'move', '指针在空白处移动，光标跟随。', [.18, .63]),
+      pointer('[data-cursor-field]', 'move', '指针进入圆靶，光标吸到固定的靶心。', [.58, .5]),
+      pointer('[data-cursor-field]', 'move', '移出圆靶，光标重新跟随指针。', [.85, .35]),
+      pointer('[data-cursor-field]', 'leave', '移出画布，恢复系统光标。', [1.04, .35]),
+    ],
+  },
+  'hover-card': {
+    view: '[data-card-stage]', reset: '[data-hover-target]', release: '[data-card-anchor]',
+    steps: [
+      pointer('[data-card-anchor]', 'enter', '移入按钮，下方展开资料卡。', [.5, .1]),
+      pointer('[data-card-anchor]', 'leave', '移出按钮和资料卡，卡片收起。', [1.08, .5]),
+    ],
+  },
+  'hover-preview': hoverSelection('指针停在第二个标题，预览区换上对应作品。', '移到第三个标题，同一位置又换了一幅画。'),
+  'shared-hover-marker': hoverSelection('移入第二项，观察方块从上一项滑到这一项。', '继续向下，跟随同一个方块的移动。'),
+  'hover-grid-trail': {
+    view: '[data-grid-board]', reset: '[data-hover-grid]',
+    steps: [
+      pointer('[data-cell="10"]', 'enter', '指针经过六边形，这一格亮起。', [.5, .5], 80),
+      pointer('[data-cell="11"]', 'enter', '继续移入下一格，前一格开始褪色。', [.5, .5], 80),
+      pointer('[data-cell="12"]', 'enter', '沿途各格依次响应，连成短暂的轨迹。', [.5, .5], 80),
+      pointer('[data-cell="12"]', 'leave', '指针离开，最后一格也恢复底色。', [1.1, .5], 800),
     ],
   },
   'enter-once': trigger(

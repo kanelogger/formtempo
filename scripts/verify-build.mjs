@@ -68,11 +68,6 @@ const text = new Map(await Promise.all(
 const slugs = effects.map(({ slug }) => slug);
 const details = new Set(slugs.map((slug) => routes.effect(slug) + "index.html"));
 const examples = new Set(slugs.flatMap((slug) => ["native", "gsap"].map((kind) => routes.example(slug, kind))));
-requireThat(slugs.length === 22 && details.size === 22 && examples.size === 44,
-  "The atlas must contain 22 unique cases and 44 examples.");
-const numbers = new Set(effects.map(({ number }) => number));
-const expectedNumbers = Array.from({ length: 22 }, (_, index) => String(index + 1).padStart(2, "0"));
-requireThat(expectedNumbers.every((number) => numbers.has(number)), "The atlas must use case numbers 01–22.");
 
 const releasedSlugs = [
   "symmetric-transition", "asymmetric-transition", "direction-aware",
@@ -82,7 +77,12 @@ const releasedSlugs = [
   "magnetic-button", "pointer-enter-once", "section-snap", "scale-reveal",
   "video-scrub", "soft-mask-reveal", "scroll-camera",
   "hover-reveal", "scroll-3d-model", "scroll-3d-scene",
+  "magnetic-cursor", "hover-card", "hover-accordion", "hover-preview",
+  "shared-hover-marker", "hover-grid-trail",
 ];
+const caseCount = releasedSlugs.length;
+requireThat(slugs.length === caseCount && details.size === caseCount && examples.size === caseCount * 2,
+  `The atlas must contain ${caseCount} unique cases and ${caseCount * 2} examples.`);
 requireThat(Object.keys(demoGuides).length === slugs.length &&
   slugs.every((slug) => demoGuides[slug]?.steps.length), "Each effect must define a demo guide.");
 for (const [index, slug] of releasedSlugs.entries()) {

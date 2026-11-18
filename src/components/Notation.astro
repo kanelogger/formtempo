@@ -165,4 +165,53 @@ const stroke = compact ? 2.6 : 1.5;
       <circle cx="99" cy="50" r="9" fill="currentColor" opacity=".5" /><path d="M74 79l20-17 20 17zm119-1 20-24 20 24z" />
     </g>
   )}
+  {variant === 23 && (
+    <g fill="none" stroke="currentColor" stroke-width={stroke}>
+      <circle cx="183" cy="59" r="28" /><circle cx="183" cy="59" r="6" fill="currentColor" />
+      <circle cx="87" cy="76" r="6" stroke-dasharray="3 3" />
+      <path d="M98 74q34-2 65-13m-8-3 8 3-4 7" />
+    </g>
+  )}
+  {variant === 24 && (
+    <g fill="none" stroke="currentColor" stroke-width={stroke}>
+      <rect x="99" y="24" width="114" height="20" rx="5" /><path d="M113 34h44m33-3 4 4 4-4" />
+      <rect x="99" y="48" width="114" height="45" rx="4" fill="currentColor" fill-opacity=".12" />
+      <circle cx="123" cy="70" r="10" /><path d="M143 66h52m-52 9h32" />
+    </g>
+  )}
+  {variant === 25 && (
+    <g fill="none" stroke="currentColor" stroke-width={stroke}>
+      <rect x="69" y="30" width="29" height="58" rx="4" />
+      <rect x="104" y="30" width="104" height="58" rx="4" fill="currentColor" fill-opacity=".15" />
+      <rect x="214" y="30" width="29" height="58" rx="4" />
+      <path d="M146 59h-30m7-6-7 6 7 6m43-6h30m-7-6 7 6-7 6" />
+    </g>
+  )}
+  {variant === 26 && (
+    <g fill="none" stroke="currentColor" stroke-width={stroke}>
+      <path d="M72 39h50m-50 20h60m-60 20h42" />
+      <circle cx="61" cy="59" r="3" fill="currentColor" /><path d="M139 59h30m-6-4 6 4-6 4" />
+      <rect x="177" y="29" width="72" height="60" rx="4" />
+      <circle cx="213" cy="51" r="9" fill="currentColor" fill-opacity=".5" /><path d="m184 79 20-18 14 12 9-7 15 13" />
+    </g>
+  )}
+  {variant === 27 && (
+    <g fill="none" stroke="currentColor" stroke-width={stroke}>
+      <rect x="100" y="22" width="112" height="74" rx="4" /><path d="M135 37h57m-57 22h49m-49 22h60" />
+      <rect x="111" y="32" width="10" height="10" opacity=".4" stroke-dasharray="2 2" />
+      <path d="M116 46v24m-4-6 4 6 4-6" /><path d="m116 74 7 7-7 7-7-7z" fill="currentColor" />
+    </g>
+  )}
+  {variant === 28 && (
+    <g stroke="currentColor" stroke-width={stroke}>
+      {Array.from({ length: 21 }, (_, i) => {
+        const row = Math.floor(i / 7);
+        const col = i % 7;
+        const trail = [7, 8, 2, 3, 10, 11, 12].indexOf(i);
+        return <path d="m0-12 10 6v12L0 12l-10-6V-6z"
+          transform={`translate(${86 + col * 21 + (row % 2) * 10.5} ${40 + row * 18.5})`}
+          fill="currentColor" fill-opacity={trail < 0 ? 0 : (trail + 1) / 8} />;
+      })}
+    </g>
+  )}
 </svg>

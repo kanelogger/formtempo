@@ -14,6 +14,9 @@ import ScrollCamera from "../../demos/ScrollCamera.astro";
 import HoverReveal from "../../demos/HoverReveal.astro";
 import ScrollModel from "../../demos/ScrollModel.astro";
 import ScrollScene from "../../demos/ScrollScene.astro";
+import HoverTarget from "../../demos/HoverTarget.astro";
+import HoverSelection from "../../demos/HoverSelection.astro";
+import HoverGridTrail from "../../demos/HoverGridTrail.astro";
 import { demoGuides } from "../../demos/demo-guide-cases";
 import "../../demos/demo-guide.css";
 import { examples } from "../../examples";
@@ -31,6 +34,12 @@ const caseDemos = new Map([
   ["hover-reveal", HoverReveal],
   ["scroll-3d-model", ScrollModel],
   ["scroll-3d-scene", ScrollScene],
+  ["magnetic-cursor", HoverTarget],
+  ["hover-card", HoverTarget],
+  ["hover-accordion", HoverSelection],
+  ["hover-preview", HoverSelection],
+  ["shared-hover-marker", HoverSelection],
+  ["hover-grid-trail", HoverGridTrail],
 ]);
 
 export function getStaticPaths() {

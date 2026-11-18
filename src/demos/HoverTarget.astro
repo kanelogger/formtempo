@@ -1,0 +1,16 @@
+---
+import { hoverTargetMarkup, type TargetVariant } from './hover-target-markup';
+import './hover-target.css';
+
+interface Props { variant: string }
+---
+<Fragment set:html={hoverTargetMarkup(Astro.props.variant as TargetVariant)} />
+<script>
+  import { bindMagneticCursor } from './hover-target-cursor.js';
+  import { bindHoverCard } from './hover-target-card.js';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-hover-target]')) {
+    if (root.dataset.hoverTarget === 'magnetic-cursor') bindMagneticCursor(root);
+    else bindHoverCard(root);
+  }
+</script>

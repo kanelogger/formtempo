@@ -1,0 +1,12 @@
+---
+import { hoverGridMarkup } from './hover-grid-markup';
+import './hover-grid.css';
+---
+<Fragment set:html={hoverGridMarkup} />
+
+<script>
+  import { bindHoverGrid } from './hover-grid-interaction.js';
+  for (const grid of document.querySelectorAll<HTMLElement>('[data-hover-grid]')) {
+    bindHoverGrid(grid);
+  }
+</script>

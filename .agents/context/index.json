@@ -37,7 +37,7 @@
         },
         {
           "file": "scripts/verify-build.mjs",
-          "sha256": "85451fa44f32d0a8dc82a80010ce46eb092062b22f100c067a5d8c97fbb69e25"
+          "sha256": "ecc5d3fcf65eeb2d2c035d3289e2d3dd184f37960a407c814195f0274900d7b5"
         }
       ]
     },
@@ -121,16 +121,16 @@
       "aliases": [
         "示例缺页排查"
       ],
-      "summary": "独立示例缺失时，查阅产物负例与交互复现方法。",
+      "summary": "查阅示例缺页负例，以及指针导览在三个入口中的状态回读方法。",
       "when": [
         "plan",
         "handoff"
       ],
-      "sha256": "7508b7797472ce14d22855f768d93be2ed8c941c2bae4dd78097b74f914f6efa",
+      "sha256": "d2ee044401085f43764f14d2e1c210db6b9c0f11e6f17ab542bb927343bcc3a5",
       "sources": [
         {
           "file": "src/pages/effects/[slug].astro",
-          "sha256": "bdbfb6f9ffc61e2de059616dd2043018dbf2b7516bc4b6ae845e4fb9d524042b"
+          "sha256": "af67c2a04d99c1e4b2bb4c3420b2ff2cf7ce8843a24bc4d2d014b1f4bd431763"
         },
         {
           "file": "src/pages/examples/[slug]/[implementation].html.ts",
@@ -142,11 +142,19 @@
         },
         {
           "file": "scripts/verify-build.mjs",
-          "sha256": "85451fa44f32d0a8dc82a80010ce46eb092062b22f100c067a5d8c97fbb69e25"
+          "sha256": "ecc5d3fcf65eeb2d2c035d3289e2d3dd184f37960a407c814195f0274900d7b5"
         },
         {
           "file": "src/demos/pointer-comparison-interaction.js",
           "sha256": "f2aaf9b948459c3b83c969fe34dc96b6e3cacbe5627fc02538f2c82aaf0b6040"
+        },
+        {
+          "file": "src/demos/demo-guide.js",
+          "sha256": "88c6f40e72a317e7413f23d1fc4da44277016fdc5d4e604922eb602a91d4cce3"
+        },
+        {
+          "file": "src/demos/hover-grid-interaction.js",
+          "sha256": "72642d3177ca902686fc52a18b46486fdb6f2fc5dccb35b62238fd9e87c6f49a"
         }
       ]
     }
