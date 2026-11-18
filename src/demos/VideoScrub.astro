@@ -9,10 +9,10 @@ import './video-scrub.css';
 <Fragment set:html={scrollProgressMarkup({ id: 'video-scrub', initial: 0, stage: videoScrubStage(videoUrl) })} />
 
 <script>
-  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  import { bindGsapProgress } from './gsap-scroll-progress';
   import { createVideoScrubber } from './video-scrub-interaction.js';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-scroll-progress="video-scrub"]')) {
-    bindScrollProgress(root, createVideoScrubber(root));
+    bindGsapProgress(root, createVideoScrubber(root));
   }
 </script>

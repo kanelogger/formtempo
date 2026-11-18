@@ -1,5 +1,8 @@
 import pointerSource from './pointer-interaction.js?raw';
 
+import gsapSource from './pointer-gsap.js?raw';
+
+const adapter = gsapSource.replace('export function animatePointer', 'function animatePointer');
 const source = pointerSource.replace(/^export function bindPointerStage/m, 'function bindPointerStage');
 const gsapUrl = 'https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js';
 const directions = [['top', '上'], ['right', '右'], ['bottom', '下'], ['left', '左']] as const;
@@ -48,16 +51,8 @@ function documentFor(variant: string, title: string, useGsap: boolean) {
 </main>
 <script>
 ${source}${useGsap ? `
-function animateWithGsap(panel, from, to) {
-  const tween = gsap.fromTo(panel, { transform: from }, {
-    transform: to,
-    duration: 0.38,
-    ease: 'power3.out',
-  });
-  return { moving: () => tween.isActive(), stop: () => tween.kill() };
-}
-
-bindPointerStage(document.querySelector('main'), window.gsap ? animateWithGsap : undefined);` : "\nbindPointerStage(document.querySelector('main'));"}
+${adapter}
+bindPointerStage(document.querySelector('main'), window.gsap ? (panel, from, to) => animatePointer(gsap, panel, from, to) : undefined);` : "\nbindPointerStage(document.querySelector('main'));"}
 </script>
 </body>
 </html>`;

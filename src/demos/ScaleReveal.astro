@@ -6,9 +6,12 @@ import './scale-reveal.css';
 <Fragment set:html={scaleRevealMarkup} />
 
 <script>
+  import { gsap } from 'gsap';
   import { bindScaleReveal } from './scale-reveal-interaction.js';
 
   for (const demo of document.querySelectorAll<HTMLElement>('[data-scale-reveal]')) {
-    bindScaleReveal(demo);
+    bindScaleReveal(demo, (crop, zoom) => gsap.timeline({ paused: true })
+      .fromTo(crop, { clipPath: 'inset(50%)' }, { clipPath: 'inset(0%)', ease: 'none' }, 0)
+      .fromTo(zoom, { scale: 0 }, { scale: 1, ease: 'none' }, 0));
   }
 </script>

@@ -69,9 +69,30 @@ const guidance: Record<string, string> = {
 </section>
 
 <script>
+  import { gsap } from 'gsap';
+  import { Flip } from 'gsap/Flip';
   import { bindTransitionStage } from './transition-interaction.js';
 
-  document.querySelectorAll<HTMLElement>('[data-transition-variant]').forEach((stage) => bindTransitionStage(stage));
+  gsap.registerPlugin(Flip);
+  function motion(tween: gsap.core.Animation) {
+    const finished = new Promise<void>((resolve) => {
+      tween.eventCallback('onComplete', resolve);
+      tween.eventCallback('onInterrupt', resolve);
+    });
+    return { finished, stop: () => tween.kill() };
+  }
+
+  for (const stage of document.querySelectorAll<HTMLElement>('[data-transition-variant]')) {
+    bindTransitionStage(stage, (element, frames, duration) => {
+      const tween = gsap.fromTo(element, frames[0], { ...frames[1], duration: duration / 1000, ease: 'power3.out' });
+      return motion(tween);
+    }, (first, last, present) => {
+      const state = Flip.getState(first);
+      present();
+      const tween = Flip.from(state, { targets: last, scale: true, duration: .56, ease: 'power3.out' });
+      return motion(tween);
+    });
+  }
 </script>
 
 <style>

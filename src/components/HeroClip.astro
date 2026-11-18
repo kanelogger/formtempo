@@ -3,10 +3,9 @@ import { clipArtwork } from "../demos/driven-art";
 
 interface Props {
   title: string;
-  exampleUrl: string;
 }
 
-const { title, exampleUrl } = Astro.props;
+const { title } = Astro.props;
 const initial = 48;
 ---
 
@@ -30,12 +29,7 @@ const initial = 48;
   </div>
   <div class="hero-clip-source">
     <p id="hero-clip-help">淡色为完整画面</p>
-    <button class="cmd-copy" type="button" data-copy-url={exampleUrl} aria-describedby="hero-copy-status" aria-label="复制裁剪展开原生示例链接">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="4.5" y="4.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 4.5V3A1.5 1.5 0 0 0 8 1.5H3A1.5 1.5 0 0 0 1.5 3v5A1.5 1.5 0 0 0 3 9.5h1.5" stroke="currentColor" stroke-width="1.3"/></svg>
-      <span>复制原生示例链接</span>
-    </button>
   </div>
-  <p id="hero-copy-status" class="copy-status" role="status"></p>
 </figure>
 
 <style>

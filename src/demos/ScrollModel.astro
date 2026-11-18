@@ -6,8 +6,8 @@ import './scroll-model.css';
 ---
 <Fragment set:html={scrollProgressMarkup({ id: 'scroll-3d-model', stage: scrollModelStage, initial: 50 })} />
 <script>
-  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  import { bindProgressProperty } from './gsap-scroll-progress';
   for (const demo of document.querySelectorAll<HTMLElement>('[data-scroll-progress="scroll-3d-model"]')) {
-    bindScrollProgress(demo, (progress) => demo.style.setProperty('--model-progress', String(progress)));
+    bindProgressProperty(demo, '--model-progress');
   }
 </script>

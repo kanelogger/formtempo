@@ -2,7 +2,7 @@
 
 <img src="public/mark.svg" alt="FormTempo 翻盖图鉴标志" width="72" height="72" />
 
-FormTempo 是一册可操作的网页动效图鉴。每个案例介绍名称、效果、适用场景和实现方法，并附可以复制或单独打开的原生与 GSAP 示例。
+FormTempo 是一册可操作的网页动效图鉴。每个案例直接展示名称和可操作的 GSAP 动效。画面下方可以展开完整 HTML 源码；有原生和 GSAP 两种写法时分别列出。
 
 [浏览图鉴](https://kanelogger.github.io/formtempo/) · [品牌标志与素材](DESIGN.md#品牌标志)
 
@@ -20,7 +20,7 @@ npm run dev
 ## 新增案例
 
 1. 在 `src/effects.ts` 加入案例元数据，填写效果、使用场景、行为定义和实现要点。
-2. 在 `src/demos/` 的对应分类中添加演示和两份可独立运行的 HTML 示例。原生与 GSAP 写法应呈现同一种行为。
+2. 在 `src/demos/` 的对应分类中实现使用本地 GSAP 的详情页演示，并登记已有的 HTML 源码。至少提供一份；有两种写法时应呈现同一种行为。详情页按实际版本列出源码，独立 HTML 路由按同一清单构建。
 3. 补充目录示意和产物检查，运行 `npm run verify`，再测试鼠标、触屏、键盘和减少动态效果。
 
 Agent 协作步骤和交接约定见[开发工作流](AGENTS.md#开发工作流)。

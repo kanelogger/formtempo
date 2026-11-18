@@ -12,7 +12,7 @@
         "start",
         "handoff"
       ],
-      "sha256": "03fad93557493b30ea66260ee405c2836b707ef99353e7f7478210e79769faea"
+      "sha256": "43bfbc1f0f71b0c8dc69d5ef995dc3182bd7f97ccd0f5da7e68843757bcdd705"
     },
     "checks.verify": {
       "file": "project.yml",
@@ -29,15 +29,15 @@
         "start",
         "verify"
       ],
-      "sha256": "498cb7fb69763016b7f7350ed0272e3d66e119f297c06e607228c5ade372fa1d",
+      "sha256": "8a0e5aa30ce723cc56c27691faa65a4e4b80d27d55566eac0b0a1199388737ee",
       "sources": [
         {
           "file": "package.json",
-          "sha256": "bc4711417b08b44df0ee2312c40e02ba1a2c2e213577a1c472140afc3862e578"
+          "sha256": "117237f8d262e9c2050b5349591e6f478c655cb026b836ca849ba780ea6611ff"
         },
         {
           "file": "scripts/verify-build.mjs",
-          "sha256": "ecc5d3fcf65eeb2d2c035d3289e2d3dd184f37960a407c814195f0274900d7b5"
+          "sha256": "b885bc0be865ea6f955da4608086eb9b613fe805421e716ec3080ede75da38c3"
         }
       ]
     },
@@ -55,7 +55,7 @@
       "when": [
         "verify"
       ],
-      "sha256": "498cb7fb69763016b7f7350ed0272e3d66e119f297c06e607228c5ade372fa1d",
+      "sha256": "8a0e5aa30ce723cc56c27691faa65a4e4b80d27d55566eac0b0a1199388737ee",
       "sources": [
         {
           "file": "astro.config.mjs",
@@ -63,7 +63,7 @@
         },
         {
           "file": "package.json",
-          "sha256": "bc4711417b08b44df0ee2312c40e02ba1a2c2e213577a1c472140afc3862e578"
+          "sha256": "117237f8d262e9c2050b5349591e6f478c655cb026b836ca849ba780ea6611ff"
         }
       ]
     },
@@ -78,18 +78,18 @@
         "plan",
         "implement"
       ],
-      "sha256": "6c08bd010116812eb0f9390bb86a75806cf5b223a5328330e2cdf7bcb5ab4d39"
+      "sha256": "7d00a782b1937d2d722cdb596c89b848aa4f7b581a6bf4f4e9d0eb40d8491d42"
     },
     "examples.collect": {
       "file": "src/examples.ts",
       "aliases": [
         "独立示例收集"
       ],
-      "summary": "查原生与 GSAP 的示例对怎样收集并注入导览。",
+      "summary": "核对实际提供的源码版本以及每份 HTML 的导览注入。",
       "when": [
         "implement"
       ],
-      "sha256": "1b5ed5b50b0d036027138aa69552df14818b28fbf515197503b94af04124d293"
+      "sha256": "44bf751cb93c4b0002f1cc301717d99bd318780aba6fd8d9d207ec36e4d00505"
     },
     "examples.route": {
       "file": "src/pages/examples/[slug]/[implementation].html.ts",
@@ -121,16 +121,16 @@
       "aliases": [
         "示例缺页排查"
       ],
-      "summary": "查阅示例缺页负例，以及指针导览在三个入口中的状态回读方法。",
+      "summary": "查阅详情交互、源码折叠项与已发布 HTML 的对应关系，以及缺页负例和指针状态回读方法。",
       "when": [
         "plan",
         "handoff"
       ],
-      "sha256": "d2ee044401085f43764f14d2e1c210db6b9c0f11e6f17ab542bb927343bcc3a5",
+      "sha256": "eaf8c0a90721a15491709acd9e74ccc2f003c9159d7143db1d9fe97dd78f7323",
       "sources": [
         {
           "file": "src/pages/effects/[slug].astro",
-          "sha256": "af67c2a04d99c1e4b2bb4c3420b2ff2cf7ce8843a24bc4d2d014b1f4bd431763"
+          "sha256": "0117545a2670273d218ee41ef0e43ed6cb9b769baccea64a0dbdd3079bfcfd67"
         },
         {
           "file": "src/pages/examples/[slug]/[implementation].html.ts",
@@ -138,11 +138,11 @@
         },
         {
           "file": "src/examples.ts",
-          "sha256": "1b5ed5b50b0d036027138aa69552df14818b28fbf515197503b94af04124d293"
+          "sha256": "44bf751cb93c4b0002f1cc301717d99bd318780aba6fd8d9d207ec36e4d00505"
         },
         {
           "file": "scripts/verify-build.mjs",
-          "sha256": "ecc5d3fcf65eeb2d2c035d3289e2d3dd184f37960a407c814195f0274900d7b5"
+          "sha256": "b885bc0be865ea6f955da4608086eb9b613fe805421e716ec3080ede75da38c3"
         },
         {
           "file": "src/demos/pointer-comparison-interaction.js",
@@ -155,6 +155,18 @@
         {
           "file": "src/demos/hover-grid-interaction.js",
           "sha256": "72642d3177ca902686fc52a18b46486fdb6f2fc5dccb35b62238fd9e87c6f49a"
+        },
+        {
+          "file": "src/demos/pointer-gsap.js",
+          "sha256": "ee3d4bd608283d8234e215ac22d352a9e8721c3225e415069b329cb2b2298c77"
+        },
+        {
+          "file": "src/demos/pointer-interaction.js",
+          "sha256": "a67f5a218c117a4bc15f83505915af81e246cdb3eca1622fd83f00912fad572e"
+        },
+        {
+          "file": "src/demos/pointer-examples.ts",
+          "sha256": "8e91ab3efd84a8483a409b5822cb7dcbb19aba1c8562ac659add90cd7422c4bf"
         }
       ]
     }

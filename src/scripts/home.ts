@@ -1,4 +1,14 @@
+import { bindDriven } from '../demos/driven-interaction';
 import { copyText } from "./clipboard";
+
+for (const demo of document.querySelectorAll<HTMLElement>('[data-driven]')) {
+  bindDriven(demo, (value) => {
+    demo.style.setProperty('--driven-p', String(value));
+    if (demo.dataset.drivenVariant === 'clip-reveal') {
+      demo.style.setProperty('--driven-inset', `${(1 - value) * 50}%`);
+    }
+  });
+}
 
 const stage = document.querySelector<HTMLElement>("#preview")!;
 const stageWindow = stage.querySelector<HTMLElement>(".stage-window")!;
@@ -71,8 +81,6 @@ function updateChrome() {
   const tab = activeTab();
   const title = tab.lastElementChild?.textContent || "";
   proofOpen.href = tab.dataset.href || "";
-  proofOpen.firstElementChild!.textContent = mode === "demo" ? "打开案例" : "打开示例";
-  proofOpen.setAttribute("aria-label", mode === "demo" ? "在新标签页打开案例" : "在新标签页打开示例");
   proofLive.textContent = mode === "demo" ? "现场演示" : "实现片段";
   proofMeta.textContent = mode === "demo" ? `${title} · 滚动驱动` : `裁剪展开 · ${title}`;
 }
@@ -352,41 +360,11 @@ for (const button of document.querySelectorAll<HTMLButtonElement>(".cmd-copy")) 
     if (!status) return;
     const current = ++attempt;
     const source = button.dataset.copyFrom ? document.getElementById(button.dataset.copyFrom) : undefined;
-    const text = source instanceof HTMLTemplateElement
-      ? source.content.textContent || ""
-      : new URL(button.dataset.copyUrl || "", location.href).href;
+    if (!(source instanceof HTMLTemplateElement)) return;
+    const text = source.content.textContent || "";
     status.textContent = "";
     const copied = await copyText(text, () => current === attempt);
     if (current !== attempt) return;
-    status.textContent = copied ? "已复制。" : "复制失败，可以打开独立示例。";
+    status.textContent = copied ? "已复制。" : "复制失败，请重试。";
   });
 }
-
-const demoOpen = document.querySelector<HTMLAnchorElement>("#demo-open")!;
-const demoDialog = document.querySelector<HTMLDialogElement>("#demo-dialog")!;
-const demoClose = document.querySelector<HTMLButtonElement>("#demo-close")!;
-const demoFrame = demoDialog.querySelector<HTMLIFrameElement>("iframe")!;
-demoOpen.addEventListener("click", (event) => {
-  if (typeof demoDialog.showModal !== "function" || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  const exampleUrl = new URL(demoOpen.href);
-  if (document.documentElement.dataset.theme === "dark") exampleUrl.searchParams.set("theme", "dark");
-  demoDialog.showModal();
-  demoFrame.src = exampleUrl.href;
-  document.documentElement.classList.add("demo-lock");
-});
-demoClose.addEventListener("click", () => demoDialog.close());
-demoDialog.addEventListener("click", (event) => {
-  if (event.target === demoDialog) demoDialog.close();
-});
-demoFrame.addEventListener("load", () => {
-  if (!demoDialog.open) return;
-  demoFrame.contentDocument?.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") demoDialog.close();
-  });
-});
-demoDialog.addEventListener("close", () => {
-  demoFrame.removeAttribute("src");
-  document.documentElement.classList.remove("demo-lock");
-  demoOpen.focus({ preventScroll: true });
-});

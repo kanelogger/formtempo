@@ -75,9 +75,13 @@ const directions = [
 </section>
 
 <script>
+  import { animatePointer } from './pointer-gsap.js';
+  import { gsap } from 'gsap';
   import { bindPointerStage } from './pointer-interaction.js';
 
-  document.querySelectorAll<HTMLElement>('[data-pointer-variant]').forEach((stage) => bindPointerStage(stage));
+  for (const stage of document.querySelectorAll<HTMLElement>('[data-pointer-variant]')) {
+    bindPointerStage(stage, (panel, from, to) => animatePointer(gsap, panel, from, to));
+  }
 </script>
 
 <style>

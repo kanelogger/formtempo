@@ -2,6 +2,7 @@ export function bindHoverReveal(root, animate) {
   const card = root.querySelector('.hover-reveal__card');
   const info = root.querySelector('.hover-reveal__info');
   const button = root.querySelector('[data-reveal-toggle]');
+  if (animate) info.style.transition = 'none';
   let pinned = false;
   let hovered = false;
   function render() {

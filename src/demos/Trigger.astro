@@ -5,7 +5,6 @@ interface Props { variant: string }
 const { variant } = Astro.props;
 const current = variant as TriggerVariant;
 const title = triggerCases[current].name;
-const actions = { play: '播放', none: '—', reset: '复位' } as const;
 ---
 
 <formtempo-trigger data-trigger-variant={variant}>
@@ -65,24 +64,10 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
       </div>
     </section>
   </div>
-  <div class="trigger-comparison">
-    <h3>四个边界事件</h3>
-    <p>「—」表示保留当前状态。加载在区间内时三个案例均已揭示。加载在区间后时，仅双向揭示回到初始状态。</p>
-    <table>
-      <thead><tr><th scope="col">行为</th>{eventLabels.map((label) => <th scope="col">{label}</th>)}</tr></thead>
-      <tbody>
-        {Object.entries(triggerCases).map(([slug, item]) => (
-          <tr class:list={{ 'trigger-current-case': current === slug }}>
-            <th scope="row" aria-current={current === slug ? 'true' : undefined}>{item.name}</th>
-            {item.actions.map((action) => <td>{actions[action]}</td>)}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
 </formtempo-trigger>
 
 <script>
+  import { gsap } from "gsap";
   import {
     crossedBoundaries,
     eventLabels,
@@ -120,7 +105,11 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
       let resetting = false;
       // The simulated crossings must not consume a real one-shot trigger.
       let guideSnapshot: { shown: boolean; played: boolean; scroll: number } | undefined;
-      let motionFrame = 0;
+      const art = this.querySelector('.trigger-art-layer')!;
+      const motion = matchMedia('(prefers-reduced-motion: reduce)');
+      const reveal = gsap.fromTo(art, { opacity: 0, y: 12 }, {
+        opacity: 1, y: 0, duration: .38, ease: 'power3.out', paused: true,
+      });
       let scrollFrame = 0;
       let syncFrame = 0;
 
@@ -130,7 +119,10 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         end = scrollTopFor(endAnchor);
       };
 
-      const update = (event = '', position = previous) => {
+      const update = (event = '', position = previous, immediate = false) => {
+        if (immediate || motion.matches) reveal.progress(shown ? 1 : 0).pause();
+        else if (shown) reveal.play();
+        else reveal.reverse();
         this.dataset.revealed = String(shown);
         this.dataset.position = position;
         const text = shown ? '已揭示' : '初始状态';
@@ -151,15 +143,6 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         }
       };
 
-      const showWithoutTransition = (sync: () => void) => {
-        this.dataset.syncing = '';
-        sync();
-        cancelAnimationFrame(motionFrame);
-        motionFrame = requestAnimationFrame(() => {
-          delete this.dataset.syncing;
-        });
-      };
-
       const seed = () => {
         if (resetting) return;
         guideSnapshot = undefined;
@@ -167,7 +150,7 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         previous = regionAt(window.scrollY, start, end);
         shown = revealAtLoad(variant, previous);
         played = variant === 'enter-once' && shown;
-        showWithoutTransition(() => update());
+        update('', previous, true);
       };
 
       const scheduleSeed = () => {
@@ -198,6 +181,9 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         });
       };
 
+      motion.addEventListener('change', () => {
+        if (motion.matches) reveal.progress(shown ? 1 : 0).pause();
+      }, { signal });
       this.dataset.ready = '';
       controls.hidden = false;
       fallback.hidden = true;
@@ -214,7 +200,7 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         guideSnapshot.scroll = window.scrollY;
         played = false;
         shown = false;
-        showWithoutTransition(() => update('导览起点', 'before'));
+        update('导览起点', 'before', true);
       }, { signal });
 
       controls.addEventListener('click', (event) => {
@@ -241,7 +227,7 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
             if (previous === 'before') {
               played = false;
               shown = false;
-              showWithoutTransition(() => update('已回到触发起点'));
+              update('已回到触发起点', previous, true);
               origin.focus({ preventScroll: true });
             } else {
               update('请滚到触发起点，再次复位');
@@ -258,7 +244,7 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
         observer.disconnect();
         cancelAnimationFrame(scrollFrame);
         cancelAnimationFrame(syncFrame);
-        cancelAnimationFrame(motionFrame);
+        reveal.kill();
       };
     }
 
@@ -359,9 +345,6 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
     block-size: clamp(7.5rem, 22vw, 12rem);
     margin-inline: auto;
   }
-  .trigger-art-layer { transition: opacity .35s ease, transform .38s cubic-bezier(.16, 1, .3, 1); }
-  formtempo-trigger[data-revealed="false"] .trigger-art-layer { opacity: 0; transform: translateY(.7rem); }
-  formtempo-trigger[data-syncing] .trigger-art-layer { transition: none; }
 
   .trigger-locations {
     display: grid;
@@ -432,25 +415,7 @@ const actions = { play: '播放', none: '—', reset: '复位' } as const;
   .trigger-fallback i { inline-size: 1rem; block-size: .7rem; border: 1px dashed var(--text-3); }
   .trigger-fallback span + span i { border: 1px solid var(--trigger-accent); background: var(--trigger-accent); }
 
-  .trigger-comparison { margin-block-start: 1.1rem; }
-  .trigger-comparison h3 { margin: 0; font-size: 1.05rem; }
-  .trigger-comparison p { color: var(--text-2); font-size: .84rem; }
-  .trigger-comparison table {
-    inline-size: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    font-size: clamp(.67rem, 2vw, .86rem);
-    text-align: start;
-  }
-  .trigger-comparison th, .trigger-comparison td {
-    padding: .55rem .2rem;
-    border-block-end: 1px solid var(--trigger-line);
-    overflow-wrap: anywhere;
-  }
-  .trigger-current-case { background: var(--trigger-tint); color: var(--text); }
-
   @media (prefers-reduced-motion: reduce) {
-    .trigger-art-layer,
     .trigger-locations li { transition: none; }
   }
   @media (max-height: 480px) {

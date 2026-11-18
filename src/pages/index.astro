@@ -19,7 +19,6 @@ const demos = ["clip-reveal", "layered-parallax", "horizontal-gallery"]
 const featured = groups.map(({ id }) => effects.find(({ group }) => group === id)!);
 const firstEffect = effects[0];
 const clip = demos[0];
-const exampleHref = (implementation: string) => withBase(routes.example(clip.slug, implementation));
 const detailHref = (slug: string) => withBase(routes.effect(slug));
 const categoryOf = (id: string) => groups.find((group) => group.id === id)!;
 
@@ -34,7 +33,7 @@ const codeBeats = [
   { label: "边界", title: "只修改可见范围。", body: "用 clip-path 的 inset() 裁出区域。四侧边距从 50% 到 0%。" },
   { label: "进度", title: "把滚动换算成进度。", body: "在固定区间内得到 0 到 1 的值，再映射到裁剪边距。" },
   { label: "同步", title: "让滚动和画面同步。", body: "原生在动画帧更新进度，GSAP 用 ScrollTrigger 的 scrub 绑定时间轴。" },
-  { label: "试用", title: "两种实现，同一种效果。", body: "打开完整示例，切换到滚动模式，也可以用进度条验证任意一帧。" },
+  { label: "试用", title: "两种实现，同一种效果。", body: "在案例中切换到滚动模式，也可以用进度条查看任意一帧。" },
 ];
 const implementations = [
   {
@@ -62,26 +61,24 @@ const stats = [
   { value: effects.length, label: "可操作的案例" },
   { value: groups.length, label: "动效类别" },
   { value: implementations.length, label: "实现写法" },
-  { value: effects.length * implementations.length, label: "独立 HTML 示例" },
-  { value: 0, label: "原生示例运行时依赖" },
 ];
 const steps = [
   { title: "挑选一个案例", body: "按输入方式找动作。链接反馈属于指针交互，阅读过程中随进度改变的画面属于滚动驱动。" },
-  { title: "操作并比较", body: "先试玩演示，再看场景与行为定义。留意什么时候触发，反向操作时又会发生什么。" },
-  { title: "把示例带走", body: "打开原生或 GSAP 示例，复制完整 HTML，保存成文件后直接用浏览器打开。" },
+  { title: "操作并比较", body: "在案例中直接操作。留意什么时候触发，反向操作时又会发生什么。" },
+  { title: "查看源码", body: "在效果下方展开源码，查看完整 HTML。" },
 ];
 ---
 
-<Site title="FormTempo · 网页动效图鉴" description="一册可以亲手操作的网页动效图鉴。按触发方式寻找案例，了解效果、使用场景和实现方法。" section="home">
+<Site title="FormTempo · 网页动效图鉴" description="一册可以亲手操作的网页动效图鉴。按触发方式寻找案例，直接体验效果并查看源码。" section="home">
   <div class="home">
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap hero-layout">
         <div class="hero-copy">
           <h1 id="hero-title"><span>网页动效怎么做？</span><span>先来<em>亲手试一次吧。</em></span></h1>
-          <p class="hero-sub">FormTempo 收录了 {effects.length} 个可以亲手操作的网页动效，从悬停反馈到滚动揭示和页面转场。每个案例都拆解行为和使用场景，并提供原生与 GSAP 两份可独立运行的 HTML。</p>
+          <p class="hero-sub">FormTempo 收录了 {effects.length} 个可以亲手操作的网页动效，从悬停反馈到滚动揭示和页面转场。进入案例即可体验效果，也可以展开源码查看实现。</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href={catalog}>浏览图鉴 <Arrow /></a>
-            <a class="btn btn-ghost" href={exampleHref("native")} id="demo-open" aria-haspopup="dialog">
+            <a class="btn btn-ghost" href={detailHref(clip.slug)}>
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m5.25 3.5 7 4.5-7 4.5v-9Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
               现场演示
             </a>
@@ -91,7 +88,7 @@ const steps = [
             在 GitHub 查看项目
           </a>
         </div>
-        <HeroClip title={clip.title} exampleUrl={exampleHref("native")} />
+        <HeroClip title={clip.title} />
       </div>
     </section>
 
@@ -123,7 +120,7 @@ const steps = [
               {implementations.map(({ id, title }, index) => (
                 <button class="spec-card" id={`code-tab-${id}`} type="button" role="tab"
                   aria-controls={`code-panel-${id}`} aria-selected={index === 0} tabindex={index === 0 ? 0 : -1}
-                  data-href={exampleHref(id)}>
+                  data-href={detailHref(clip.slug)}>
                   <span class="spec-idx">0{index + 1}</span><span>{title}</span>
                 </button>
               ))}
@@ -178,12 +175,9 @@ const steps = [
       <div class="wrap">
         <header class="section-head">
           <p class="section-label"><span>01</span><span>精选案例</span></p>
-          <h2 class="section-heading" id="examples-title">先操作。<em>再看它为什么这样动。</em></h2>
-          <p class="section-body">四个入口覆盖常见的触发方式。每个案例都从一个能操作的演示开始，随后拆开行为和实现。</p>
+          <h2 class="section-heading" id="examples-title">选择一个动效，<em>亲手试一试。</em></h2>
+          <p class="section-body">从指针交互、滚动触发、滚动驱动和页面转场各选一个案例。</p>
         </header>
-        <ul class="answer-traits" aria-label="案例包含的内容">
-          {["现场演示", "效果定义", "使用场景", "实现要点", "原生示例", "GSAP 示例"].map((trait) => <li>{trait}</li>)}
-        </ul>
         <div class="page-grid">
           {featured.map((effect) => (
             <a class="page-card" href={detailHref(effect.slug)}>
@@ -194,8 +188,6 @@ const steps = [
                   <strong>{effect.title}</strong>
                   <span>{effect.description}</span>
                   <span class="mini-plate"><Notation slug={effect.slug} number={effect.number} compact /></span>
-                  <b>行为定义</b><span>{effect.behavior}</span>
-                  <b>实现要点</b><span>{effect.implementation}</span>
                 </span>
               </span>
               <span class="life-meta"><span class="life-lang">{effect.number}</span><span class="life-kind">{categoryOf(effect.group).title}</span><span class="life-open" aria-hidden="true">↗</span></span>
@@ -332,7 +324,6 @@ const steps = [
                   <button class="cmd-copy" type="button" data-copy-from={`full-source-${id}`} aria-describedby={`source-status-${id}`}>复制完整 HTML</button>
                 </div>
                 <template id={`full-source-${id}`}>{drivenExamples[clip.slug][id as "native" | "gsap"]}</template>
-                <a class="install-ask" href={exampleHref(id)} target="_blank" rel="noopener">打开独立示例 ↗</a>
                 <p class="copy-status" id={`source-status-${id}`} role="status"></p>
               </div>
             ))}
@@ -349,7 +340,6 @@ const steps = [
             <div class="shortcut-row"><span>移动到下一个控件</span><kbd>Tab</kbd></div>
             <div class="shortcut-row"><span>切换案例或调整进度</span><kbd>← →</kbd></div>
             <div class="shortcut-row"><span>跳到标签首尾</span><kbd>Home / End</kbd></div>
-            <div class="shortcut-row"><span>关闭演示</span><kbd>Esc</kbd></div>
           </div>
         </div>
       </div>
@@ -368,15 +358,6 @@ const steps = [
       </div>
     </section>
 
-    <dialog class="demo-dialog" id="demo-dialog" aria-labelledby="demo-title">
-      <div class="demo-frame">
-        <div class="demo-frame-bar">
-          <span class="demo-title" id="demo-title">FormTempo · 裁剪展开</span>
-          <button class="demo-close" id="demo-close" type="button" aria-label="关闭演示"><span aria-hidden="true">×</span></button>
-        </div>
-        <div class="demo-video-box"><iframe title="裁剪展开 · 原生现场演示"></iframe></div>
-      </div>
-    </dialog>
   </div>
 </Site>
 <script>

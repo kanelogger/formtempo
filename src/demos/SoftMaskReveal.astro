@@ -10,11 +10,11 @@ const markup = scrollProgressMarkup({ id: 'soft-mask-reveal', stage: softMaskRev
 <Fragment set:html={markup} />
 
 <script>
-  import { bindScrollProgress } from './scroll-progress-interaction.js';
+  import { bindGsapProgress } from './gsap-scroll-progress';
   import { createSoftMaskRenderer } from './soft-mask-reveal-interaction.js';
 
   for (const stage of document.querySelectorAll('[data-soft-mask-reveal]')) {
     const root = stage.closest<HTMLElement>('[data-scroll-progress]');
-    if (root) bindScrollProgress(root, createSoftMaskRenderer(root));
+    if (root) bindGsapProgress(root, createSoftMaskRenderer(root));
   }
 </script>

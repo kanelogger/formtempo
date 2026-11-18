@@ -2,6 +2,9 @@ import { sectionSnapMarkup } from './section-snap-content';
 import styles from './section-snap.css?raw';
 import interaction from './section-snap-interaction.js?raw';
 
+import driverSource from './section-snap-gsap.js?raw';
+
+const driver = driverSource.replace('export function createSnapDriver', 'function createSnapDriver');
 const controller = interaction.replace(/^export function bindSectionSnap/m, 'function bindSectionSnap');
 const gsapScripts = `<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>`;
@@ -68,16 +71,8 @@ ${controller}
 const stage = document.querySelector('[data-section-snap]');
 ${useGsap ? `
 if (window.gsap && window.ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
-  bindSectionSnap(stage, (viewport, sync, measure) => {
-    ScrollTrigger.create({
-      scroller: viewport,
-      start: 0,
-      end: () => viewport.scrollHeight - viewport.clientHeight,
-      onUpdate: sync,
-      onRefresh: measure,
-    });
-  });
+  ${driver}
+  bindSectionSnap(stage, (viewport, sync, measure) => createSnapDriver(gsap, ScrollTrigger, viewport, sync, measure));
 } else {
   document.querySelector('[data-snap-fallback]').hidden = false;
   bindSectionSnap(stage);

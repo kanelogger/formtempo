@@ -4,6 +4,11 @@ import './hover-reveal.css';
 ---
 <Fragment set:html={hoverRevealMarkup} />
 <script>
+  import { gsap } from 'gsap';
   import { bindHoverReveal } from './hover-reveal-interaction.js';
-  for (const demo of document.querySelectorAll<HTMLElement>('[data-hover-reveal]')) bindHoverReveal(demo);
+  for (const demo of document.querySelectorAll<HTMLElement>('[data-hover-reveal]')) {
+    bindHoverReveal(demo, (info: HTMLElement, open: boolean) => {
+      gsap.to(info, { autoAlpha: open ? 1 : 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : .3, overwrite: true });
+    });
+  }
 </script>

@@ -6,11 +6,22 @@ interface Props { variant: string }
 ---
 <Fragment set:html={hoverTargetMarkup(Astro.props.variant as TargetVariant)} />
 <script>
+  import { gsap } from 'gsap';
   import { bindMagneticCursor } from './hover-target-cursor.js';
   import { bindHoverCard } from './hover-target-card.js';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-hover-target]')) {
-    if (root.dataset.hoverTarget === 'magnetic-cursor') bindMagneticCursor(root);
-    else bindHoverCard(root);
+    if (root.dataset.hoverTarget === 'magnetic-cursor') {
+      bindMagneticCursor(root, (proxy: HTMLElement, x: number, y: number, duration: number) => {
+        gsap.to(proxy, { xPercent: x, yPercent: y, x: 0, y: 0, duration: duration / 1000, ease: 'power2.out', overwrite: true });
+      });
+    } else {
+      bindHoverCard(root, (inks: HTMLElement) => {
+        const tween = gsap.fromTo(inks, { opacity: .25, y: -4 }, {
+          opacity: 1, y: 0, duration: .16, ease: 'power2.out', clearProps: 'opacity,transform',
+        });
+        return { cancel: () => tween.revert() };
+      });
+    }
   }
 </script>

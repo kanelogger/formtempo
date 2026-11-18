@@ -1,7 +1,7 @@
 schema_version: 1
 project:
   name: FormTempo
-  purpose: 可操作的网页动效图鉴，每个案例提供行为说明以及可独立打开的原生与 GSAP 示例。
+  purpose: 可操作的网页动效图鉴，每个案例展示名称、GSAP 动效和可展开的实现源码。
   language: zh-CN
   timezone: null
 
@@ -105,7 +105,7 @@ requirements:
     - {path: node_modules/, access: [read, write], purpose: 安装锁定依赖与维护工具缓存}
   network:
     - 安装缺失依赖时使用 npm registry，浏览器预览使用本地回环地址。
-    - 独立 GSAP 示例按示例源码加载 jsDelivr，站点导航可从 GitHub API 读取仓库星数。
+    - 图鉴详情页使用本地 GSAP；独立 GSAP 源码按其声明加载 jsDelivr，站点导航可从 GitHub API 读取仓库星数。
     - Pages 工作流由 .github/workflows/pages.yml 声明，main 上符合条件的非 PR 运行在构建成功后发布 dist/。
 guides:
   development: README.md#本地运行

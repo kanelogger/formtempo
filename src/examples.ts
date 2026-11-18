@@ -2,10 +2,10 @@ import { demoGuides } from "./demos/demo-guide-cases";
 import guideStyles from "./demos/demo-guide.css?raw";
 import guideScript from "./demos/demo-guide.js?raw";
 
-type ExamplePair = { native: string; gsap: string };
+type ExampleSources = Partial<Record<"gsap" | "native", string>>;
 
-const sources = import.meta.glob<Record<string, Record<string, ExamplePair>>>("./demos/*-examples.ts", { eager: true });
-const originals: Record<string, ExamplePair> = Object.assign(
+const sources = import.meta.glob<Record<string, Record<string, ExampleSources>>>("./demos/*-examples.ts", { eager: true });
+const originals: Record<string, ExampleSources> = Object.assign(
   {},
   ...Object.values(sources).flatMap((module) => Object.values(module)),
 );
@@ -25,9 +25,10 @@ bindDemoGuide(document.body, ${JSON.stringify(guide)});
 </body>`);
 }
 
-export const examples: Record<string, ExamplePair> = Object.fromEntries(
-  Object.entries(originals).map(([slug, { native, gsap }]) => [
-    slug,
-    { native: withGuide(slug, native), gsap: withGuide(slug, gsap) },
-  ]),
+export const examples: Record<string, ExampleSources> = Object.fromEntries(
+  Object.entries(originals).map(([slug, source]) => {
+    const implementations = Object.entries(source);
+    if (!implementations.length) throw new Error(`Missing source for ${slug}`);
+    return [slug, Object.fromEntries(implementations.map(([kind, html]) => [kind, withGuide(slug, html)]))];
+  }),
 );

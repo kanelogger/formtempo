@@ -8,7 +8,6 @@ interface Props {
 
 const { effect } = Astro.props;
 const effectUrl = withBase(routes.effect(effect.slug));
-const exampleUrl = (implementation: string) => withBase(routes.example(effect.slug, implementation));
 const artwork = "#driven-clip-reveal-home-clip";
 ---
 
@@ -57,10 +56,8 @@ const artwork = "#driven-clip-reveal-home-clip";
       <h3>{effect.title}</h3>
       <p>{effect.scene} 可用 <code>clip-path: inset()</code> 从中心打开可见范围。</p>
     </div>
-    <nav class="compare-links" aria-label="裁剪展开案例与源码">
+    <nav class="compare-links" aria-label="裁剪展开案例">
       <a class="compare-detail-link" href={effectUrl}>查看案例 <Arrow diagonal /></a>
-      <a href={exampleUrl("native")}>原生 HTML</a>
-      <a href={exampleUrl("gsap")}>GSAP HTML</a>
     </nav>
   </div>
 </div>

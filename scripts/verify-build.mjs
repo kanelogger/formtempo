@@ -67,7 +67,7 @@ const text = new Map(await Promise.all(
 
 const slugs = effects.map(({ slug }) => slug);
 const details = new Set(slugs.map((slug) => routes.effect(slug) + "index.html"));
-const examples = new Set(slugs.flatMap((slug) => ["native", "gsap"].map((kind) => routes.example(slug, kind))));
+const examples = new Set();
 
 const releasedSlugs = [
   "symmetric-transition", "asymmetric-transition", "direction-aware",
@@ -80,9 +80,7 @@ const releasedSlugs = [
   "magnetic-cursor", "hover-card", "hover-accordion", "hover-preview",
   "shared-hover-marker", "hover-grid-trail",
 ];
-const caseCount = releasedSlugs.length;
-requireThat(slugs.length === caseCount && details.size === caseCount && examples.size === caseCount * 2,
-  `The atlas must contain ${caseCount} unique cases and ${caseCount * 2} examples.`);
+requireThat(slugs.length === details.size, "Case slugs must be unique.");
 requireThat(Object.keys(demoGuides).length === slugs.length &&
   slugs.every((slug) => demoGuides[slug]?.steps.length), "Each effect must define a demo guide.");
 for (const [index, slug] of releasedSlugs.entries()) {
@@ -90,11 +88,29 @@ for (const [index, slug] of releasedSlugs.entries()) {
   requireThat(effects.some((effect) => effect.slug === slug && effect.number === number),
     `Case ${number} must keep its released slug: ${slug}`);
   requireThat(files.has(`effects/${slug}/index.html`), `Missing released detail route: ${slug}`);
-  const guide = demoGuides[slug];
-  const guideRoot = tags(text.get(`effects/${slug}/index.html`) ?? "").filter(([, attrs]) => attrs.has("data-demo-guide"));
-  requireThat(guideRoot.length === 1, `Expected one demo guide on the detail page for ${slug}.`);
   for (const kind of ["native", "gsap"]) {
+    requireThat(files.has(routes.example(slug, kind)), `Missing released example route: ${slug}/${kind}`);
+  }
+}
+
+for (const slug of slugs) {
+  const page = tags(text.get(routes.effect(slug) + "index.html") ?? "");
+  const group = effects.find((effect) => effect.slug === slug).group;
+  const related = effects.filter((effect) => effect.group === group && effect.slug !== slug);
+  const links = page.filter(([tag, attrs]) => tag === "a" && attrs.get("class") === "related-link")
+    .map(([, attrs]) => attrs.get("href"));
+  requireThat(links.length === related.length && related.every((effect) => links.includes(base + routes.effect(effect.slug))),
+    `Incorrect same-group navigation for ${slug}.`);
+  const kinds = page.filter(([tag, attrs]) => tag === "details" && attrs.has("data-source-kind"))
+    .map(([, attrs]) => attrs.get("data-source-kind"));
+  requireThat(kinds.length > 0 && kinds.every((kind) => ["gsap", "native"].includes(kind))
+    && new Set(kinds).size === kinds.length, `Invalid source list for ${slug}.`);
+  const guide = demoGuides[slug];
+  const guideRoot = page.filter(([, attrs]) => attrs.has("data-demo-guide"));
+  requireThat(guideRoot.length === 1, `Expected one demo guide on the detail page for ${slug}.`);
+  for (const kind of kinds) {
     const file = `examples/${slug}/${kind}.html`;
+    examples.add(file);
     requireThat(files.has(file), `Missing released example route: ${slug}/${kind}`);
     const hasGuide = scripts(text.get(file) ?? "").some(({ body }) =>
       body.includes(`bindDemoGuide(document.body, ${JSON.stringify(guide)});`));
@@ -109,13 +125,10 @@ for (const { id } of groups) {
     `The catalog must have one anchor for the ${id} category.`);
 }
 
-for (const { slug, number, compareWith } of effects) {
-  if (Number(number) <= 12 && !compareWith) continue;
-  const page = text.get(routes.effect(slug) + "index.html") ?? "";
-  const comparisons = tags(page).filter(([tag, attrs]) => tag === "a" && attrs.has("data-comparison"));
-  requireThat(compareWith && slugs.includes(compareWith) && comparisons.length === 1 &&
-    comparisons[0][1].get("href") === base + routes.effect(compareWith),
-    `Missing comparison link in ${slug}.`);
+for (const file of ["index.html", "effects/index.html", ...details]) {
+  const markup = text.get(file) ?? "";
+  requireThat(!tags(markup).some(([tag, attrs]) => tag === "a" && attrs.get("href")?.startsWith(base + "examples/")),
+    `Standalone example link in ${file}.`);
 }
 
 for (const file of ["index.html", "effects/index.html", ...details, ...examples]) {

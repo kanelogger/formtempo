@@ -6,7 +6,12 @@ import './section-snap.css';
 <Fragment set:html={sectionSnapMarkup} />
 
 <script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { createSnapDriver } from './section-snap-gsap.js';
   import { bindSectionSnap } from './section-snap-interaction.js';
 
-  document.querySelectorAll('[data-section-snap]').forEach((root) => bindSectionSnap(root));
+  for (const root of document.querySelectorAll('[data-section-snap]')) {
+    bindSectionSnap(root, (viewport, sync, measure) => createSnapDriver(gsap, ScrollTrigger, viewport, sync, measure));
+  }
 </script>

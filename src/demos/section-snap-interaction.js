@@ -1,6 +1,6 @@
 /**
  * @param {Element} root
- * @param {(viewport: Element, sync: () => void, measure: () => void) => void} [connectScrollTrigger]
+ * @param {(viewport: Element, sync: () => void, measure: () => void) => { goTo(top: number): void, stop(): void }} [connectScrollTrigger]
  */
 export function bindSectionSnap(root, connectScrollTrigger) {
   const viewport = root.querySelector('[data-snap-viewport]');
@@ -14,6 +14,7 @@ export function bindSectionSnap(root, connectScrollTrigger) {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let stops = [];
   let active = -1;
+  let driver;
 
   function syncChapter() {
     const top = viewport.scrollTop;
@@ -38,16 +39,19 @@ export function bindSectionSnap(root, connectScrollTrigger) {
   function goTo(offset) {
     const top = stops[active + offset];
     if (top === undefined) return;
+    if (driver) return driver.goTo(top);
     viewport.scrollTo({ top, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
   }
 
   previous.addEventListener('click', () => goTo(-1));
   next.addEventListener('click', () => goTo(1));
   root.addEventListener('formtempo:guide-reset', () => {
+    driver?.stop();
     viewport.scrollTo({ top: stops[0], behavior: 'instant' });
     syncChapter();
   });
   root.addEventListener('formtempo:guide-cancel', () => {
+    driver?.stop();
     viewport.scrollTo({ top: viewport.scrollTop, behavior: 'instant' });
   });
   window.addEventListener('pageshow', measure);
@@ -57,7 +61,7 @@ export function bindSectionSnap(root, connectScrollTrigger) {
   controls.hidden = false;
 
   if (connectScrollTrigger) {
-    connectScrollTrigger(viewport, syncChapter, measure);
+    driver = connectScrollTrigger(viewport, syncChapter, measure);
   } else {
     let frame = 0;
     viewport.addEventListener('scroll', () => {
